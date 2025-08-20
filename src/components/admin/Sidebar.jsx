@@ -24,6 +24,7 @@ import {
   VolunteerActivism as VolunteerIcon,
   AttachMoney as DonationIcon,
   PersonAdd as UserIcon,
+  Analytics as AnalyticsIcon,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -32,6 +33,11 @@ const menuItems = [
     text: 'Overview', 
     icon: DashboardIcon, 
     path: '/' 
+  },
+  { 
+    text: 'Analytics', 
+    icon: AnalyticsIcon, 
+    path: '/analytics' 
   },
   { 
     text: 'Blogs', 
@@ -79,7 +85,7 @@ const Sidebar = () => {
         <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
           Platform Overview
         </ListSubheader>
-        {menuItems.slice(0, 1).map((item) => (
+        {menuItems.slice(0, 2).map((item) => (
           <ListItem
             button
             key={item.text}
@@ -117,7 +123,7 @@ const Sidebar = () => {
         <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
           Content Management
         </ListSubheader>
-        {menuItems.slice(1, 2).map((item) => (
+        {menuItems.slice(2, 3).map((item) => (
           <ListItem
             button
             key={item.text}
@@ -155,7 +161,7 @@ const Sidebar = () => {
         <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
           User Management
         </ListSubheader>
-        {menuItems.slice(2, 3).map((item) => (
+        {menuItems.slice(3, 4).map((item) => (
           <ListItem
             button
             key={item.text}
@@ -193,7 +199,7 @@ const Sidebar = () => {
         <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
           Engagement
         </ListSubheader>
-        {menuItems.slice(3, 4).map((item) => (
+        {menuItems.slice(4, 5).map((item) => (
           <ListItem
             button
             key={item.text}

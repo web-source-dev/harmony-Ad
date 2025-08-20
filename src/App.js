@@ -9,6 +9,7 @@ import CreateBlog from './components/blog/CreateBlog';
 import ManageBlog from './components/blog/ManageBlog';
 import AdminDonations from './components/admin/Donations';
 import AdminCustomers from './components/admin/Customers';
+import Analytics from './components/admin/Analytics';
 
 const App = () => {
   return (
@@ -23,6 +24,7 @@ const App = () => {
             }
           >
             <Route index element={<AdminOverview />} />
+            <Route path="analytics" element={<Analytics />} />
             <Route path="blogs" element={<AdminBlogs />} />
             <Route path="donations" element={<AdminDonations />} />
             <Route path="customers" element={<AdminCustomers />} />
