@@ -440,7 +440,7 @@ const ManageBlog = () => {
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                 {blog.image ? (
                                   <Avatar 
-                                    src={`${process.env.REACT_APP_API_URL}${blog.image}`} 
+                                    src={`${blog.image}`} 
                                     variant="rounded"
                                     sx={{ 
                                       width: 40, 

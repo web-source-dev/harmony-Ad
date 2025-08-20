@@ -24,6 +24,17 @@ import {
   Tooltip,
   Avatar,
   useTheme,
+  Pagination,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Grid,
+  Autocomplete,
+  OutlinedInput,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -32,6 +43,8 @@ import {
   Email as EmailIcon,
   Phone as PhoneIcon,
   LocationOn as LocationIcon,
+  FilterList as FilterIcon,
+  ExpandMore as ExpandMoreIcon,
 } from '@mui/icons-material';
 import API from '../../BackendAPi/ApiProvider';
 
@@ -46,26 +59,95 @@ const Customers = () => {
     lastName: '',
     email: '',
     phone: '',
+    phone1: '',
+    phone2: '',
     address: '',
+    address1Street: '',
+    address1City: '',
+    address1State: '',
+    address1Zip: '',
+    address1Country: '',
+    address2Street: '',
+    address2City: '',
+    address2State: '',
+    address2Zip: '',
+    address2Country: '',
+    address3Street: '',
+    address3StreetLine2: '',
+    address3City: '',
+    address3Country: '',
+    position: '',
+    labels: [],
     isSubscribed: true,
+    emailSubscriberStatus: 'subscribed',
+    smsSubscriberStatus: 'subscribed',
+    source: 'website'
   });
   const [formErrors, setFormErrors] = useState({});
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalCustomers: 0,
+    hasNextPage: false,
+    hasPrevPage: false,
+    limit: 20
+  });
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [filters, setFilters] = useState({
+    search: '',
+    subscriptionStatus: '',
+    emailStatus: '',
+    smsStatus: '',
+    source: '',
+    labels: '',
+    dateFrom: '',
+    dateTo: ''
+  });
+  const [showFilters, setShowFilters] = useState(false);
+  const [availableSources, setAvailableSources] = useState([]);
+  const [availableLabels, setAvailableLabels] = useState([]);
   const theme = useTheme();
 
   useEffect(() => {
     fetchCustomers();
+  }, [page, limit, filters]);
+
+  useEffect(() => {
+    fetchSourcesAndLabels();
   }, []);
 
   const fetchCustomers = async () => {
     try {
       setLoading(true);
-      const response = await API.get('/api/admin/customers');
-      setCustomers(response.data);
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        ...Object.fromEntries(Object.entries(filters).filter(([_, value]) => value !== ''))
+      });
+      
+      const response = await API.get(`/api/admin/customers?${params}`);
+      setCustomers(response.data.customers);
+      setPagination(response.data.pagination);
     } catch (err) {
       setError('Failed to load customers');
       console.error('Customers fetch error:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSourcesAndLabels = async () => {
+    try {
+      const [sourcesResponse, labelsResponse] = await Promise.all([
+        API.get('/api/admin/customers/sources'),
+        API.get('/api/admin/customers/labels')
+      ]);
+      
+      setAvailableSources(sourcesResponse.data);
+      setAvailableLabels(labelsResponse.data);
+    } catch (err) {
+      console.error('Error fetching sources and labels:', err);
     }
   };
 
@@ -77,8 +159,29 @@ const Customers = () => {
         lastName: customer.lastName || '',
         email: customer.email || '',
         phone: customer.phone || '',
+        phone1: customer.phone1 || '',
+        phone2: customer.phone2 || '',
         address: customer.address || '',
+        address1Street: customer.address1Street || '',
+        address1City: customer.address1City || '',
+        address1State: customer.address1State || '',
+        address1Zip: customer.address1Zip || '',
+        address1Country: customer.address1Country || '',
+        address2Street: customer.address2Street || '',
+        address2City: customer.address2City || '',
+        address2State: customer.address2State || '',
+        address2Zip: customer.address2Zip || '',
+        address2Country: customer.address2Country || '',
+        address3Street: customer.address3Street || '',
+        address3StreetLine2: customer.address3StreetLine2 || '',
+        address3City: customer.address3City || '',
+        address3Country: customer.address3Country || '',
+        position: customer.position || '',
+        labels: customer.labels || [],
         isSubscribed: customer.isSubscribed,
+        emailSubscriberStatus: customer.emailSubscriberStatus || 'subscribed',
+        smsSubscriberStatus: customer.smsSubscriberStatus || 'subscribed',
+        source: customer.source || 'website'
       });
     } else {
       setEditingCustomer(null);
@@ -87,8 +190,29 @@ const Customers = () => {
         lastName: '',
         email: '',
         phone: '',
+        phone1: '',
+        phone2: '',
         address: '',
+        address1Street: '',
+        address1City: '',
+        address1State: '',
+        address1Zip: '',
+        address1Country: '',
+        address2Street: '',
+        address2City: '',
+        address2State: '',
+        address2Zip: '',
+        address2Country: '',
+        address3Street: '',
+        address3StreetLine2: '',
+        address3City: '',
+        address3Country: '',
+        position: '',
+        labels: [],
         isSubscribed: true,
+        emailSubscriberStatus: 'subscribed',
+        smsSubscriberStatus: 'subscribed',
+        source: 'website'
       });
     }
     setFormErrors({});
@@ -103,8 +227,29 @@ const Customers = () => {
       lastName: '',
       email: '',
       phone: '',
+      phone1: '',
+      phone2: '',
       address: '',
+      address1Street: '',
+      address1City: '',
+      address1State: '',
+      address1Zip: '',
+      address1Country: '',
+      address2Street: '',
+      address2City: '',
+      address2State: '',
+      address2Zip: '',
+      address2Country: '',
+      address3Street: '',
+      address3StreetLine2: '',
+      address3City: '',
+      address3Country: '',
+      position: '',
+      labels: [],
       isSubscribed: true,
+      emailSubscriberStatus: 'subscribed',
+      smsSubscriberStatus: 'subscribed',
+      source: 'website'
     });
     setFormErrors({});
   };
@@ -159,6 +304,34 @@ const Customers = () => {
     }
   };
 
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleLimitChange = (event) => {
+    setLimit(event.target.value);
+    setPage(1); // Reset to first page when changing limit
+  };
+
+  const handleFilterChange = (field, value) => {
+    setFilters(prev => ({ ...prev, [field]: value }));
+    setPage(1); // Reset to first page when changing filters
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      search: '',
+      subscriptionStatus: '',
+      emailStatus: '',
+      smsStatus: '',
+      source: '',
+      labels: '',
+      dateFrom: '',
+      dateTo: ''
+    });
+    setPage(1);
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -179,13 +352,171 @@ const Customers = () => {
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4">Customers</Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenDialog()}
-        >
-          Add Customer
-        </Button>
+        <Box display="flex" gap={2}>
+          <Button
+            variant="outlined"
+            startIcon={<FilterIcon />}
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            Filters
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => handleOpenDialog()}
+          >
+            Add Customer
+          </Button>
+        </Box>
+      </Box>
+
+             {/* Filters Section */}
+       {showFilters && (
+         <Paper sx={{ mb: 3, p: 2 }}>
+           <Grid container spacing={2}>
+             <Grid item xs={12} md={2}>
+               <TextField
+                 fullWidth
+                 size="small"
+                 label="Search"
+                 placeholder="Name, email, phone..."
+                 value={filters.search}
+                 onChange={(e) => handleFilterChange('search', e.target.value)}
+               />
+             </Grid>
+             <Grid item xs={12} md={2}>
+               <FormControl fullWidth size="small">
+                 <InputLabel>Subscription</InputLabel>
+                 <Select
+                   value={filters.subscriptionStatus}
+                   label="Subscription"
+                   onChange={(e) => handleFilterChange('subscriptionStatus', e.target.value)}
+                 >
+                   <MenuItem value="">All</MenuItem>
+                   <MenuItem value="subscribed">Subscribed</MenuItem>
+                   <MenuItem value="unsubscribed">Unsubscribed</MenuItem>
+                 </Select>
+               </FormControl>
+             </Grid>
+             <Grid item xs={12} md={2}>
+               <FormControl fullWidth size="small">
+                 <InputLabel>Email Status</InputLabel>
+                 <Select
+                   value={filters.emailStatus}
+                   label="Email Status"
+                   onChange={(e) => handleFilterChange('emailStatus', e.target.value)}
+                 >
+                   <MenuItem value="">All</MenuItem>
+                   <MenuItem value="subscribed">Subscribed</MenuItem>
+                   <MenuItem value="unsubscribed">Unsubscribed</MenuItem>
+                   <MenuItem value="pending">Pending</MenuItem>
+                 </Select>
+               </FormControl>
+             </Grid>
+             <Grid item xs={12} md={2}>
+               <FormControl fullWidth size="small">
+                 <InputLabel>SMS Status</InputLabel>
+                 <Select
+                   value={filters.smsStatus}
+                   label="SMS Status"
+                   onChange={(e) => handleFilterChange('smsStatus', e.target.value)}
+                 >
+                   <MenuItem value="">All</MenuItem>
+                   <MenuItem value="subscribed">Subscribed</MenuItem>
+                   <MenuItem value="unsubscribed">Unsubscribed</MenuItem>
+                   <MenuItem value="pending">Pending</MenuItem>
+                 </Select>
+               </FormControl>
+             </Grid>
+             <Grid item xs={12} md={2}>
+               <FormControl fullWidth size="small">
+                 <InputLabel>Source</InputLabel>
+                 <Select
+                   value={filters.source}
+                   label="Source"
+                   onChange={(e) => handleFilterChange('source', e.target.value)}
+                 >
+                   <MenuItem value="">All</MenuItem>
+                   {availableSources.map((source) => (
+                     <MenuItem key={source} value={source}>
+                       {source}
+                     </MenuItem>
+                   ))}
+                 </Select>
+               </FormControl>
+             </Grid>
+             <Grid item xs={12} md={2}>
+               <FormControl fullWidth size="small">
+                 <InputLabel>Labels</InputLabel>
+                 <Select
+                   value={filters.labels}
+                   label="Labels"
+                   onChange={(e) => handleFilterChange('labels', e.target.value)}
+                 >
+                   <MenuItem value="">All</MenuItem>
+                   {availableLabels.map((label) => (
+                     <MenuItem key={label} value={label}>
+                       {label}
+                     </MenuItem>
+                   ))}
+                 </Select>
+               </FormControl>
+             </Grid>
+        
+             <Grid item xs={12} md={11}>
+               <Box display="flex" gap={2}>
+                 <TextField
+                   size="small"
+                   label="Date From"
+                   type="date"
+                   value={filters.dateFrom}
+                   onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+                   InputLabelProps={{ shrink: true }}
+                 />
+                 <TextField
+                   size="small"
+                   label="Date To"
+                   type="date"
+                   value={filters.dateTo}
+                   onChange={(e) => handleFilterChange('dateTo', e.target.value)}
+                   InputLabelProps={{ shrink: true }}
+                 />
+               </Box>
+             </Grid>
+             <Grid item xs={12} md={1}>
+               <Button
+                 fullWidth
+                 variant="outlined"
+                 size="small"
+                 onClick={clearFilters}
+               >
+                 Clear
+               </Button>
+             </Grid>
+           </Grid>
+         </Paper>
+       )}
+
+      {/* Pagination Controls */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Box display="flex" alignItems="center" gap={2}>
+          <Typography variant="body2" color="textSecondary">
+            Show {pagination.totalCustomers > 0 ? (page - 1) * limit + 1 : 0} to{' '}
+            {Math.min(page * limit, pagination.totalCustomers)} of {pagination.totalCustomers} customers
+          </Typography>
+        </Box>
+        <FormControl size="small" sx={{ minWidth: 120 }}>
+          <InputLabel>Per Page</InputLabel>
+          <Select
+            value={limit}
+            label="Per Page"
+            onChange={handleLimitChange}
+          >
+            <MenuItem value={20}>20</MenuItem>
+            <MenuItem value={50}>50</MenuItem>
+            <MenuItem value={100}>100</MenuItem>
+          </Select>
+        </FormControl>
       </Box>
 
       {error && (
@@ -197,16 +528,19 @@ const Customers = () => {
       <Paper>
         <TableContainer>
           <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Customer</TableCell>
-                <TableCell>Contact</TableCell>
-                <TableCell>Address</TableCell>
-                <TableCell>Subscription</TableCell>
-                <TableCell>Joined</TableCell>
-                <TableCell align="center">Actions</TableCell>
-              </TableRow>
-            </TableHead>
+                         <TableHead>
+               <TableRow>
+                 <TableCell>Customer</TableCell>
+                 <TableCell>Contact</TableCell>
+                 <TableCell>Address</TableCell>
+                 <TableCell>Position</TableCell>
+                 <TableCell>Labels</TableCell>
+                 <TableCell>Subscription</TableCell>
+                 <TableCell>Source</TableCell>
+                 <TableCell>Joined</TableCell>
+                 <TableCell align="center">Actions</TableCell>
+               </TableRow>
+             </TableHead>
             <TableBody>
               {customers.map((customer) => (
                 <TableRow key={customer._id}>
@@ -237,30 +571,73 @@ const Customers = () => {
                       </Box>
                     )}
                   </TableCell>
-                  <TableCell>
-                    {customer.address && (
-                      <Box display="flex" alignItems="center">
-                        <LocationIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                        <Typography variant="body2" noWrap sx={{ maxWidth: 200 }}>
-                          {customer.address}
-                        </Typography>
-                      </Box>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={customer.isSubscribed ? 'Subscribed' : 'Unsubscribed'}
-                      color={customer.isSubscribed ? 'success' : 'default'}
-                      size="small"
-                      onClick={() => handleToggleSubscription(customer._id)}
-                      sx={{ cursor: 'pointer' }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Typography variant="body2">
-                      {formatDate(customer.createdAt)}
-                    </Typography>
-                  </TableCell>
+                                     <TableCell>
+                     {customer.address1Street && (
+                       <Box display="flex" alignItems="center">
+                         <LocationIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                         <Typography variant="body2" noWrap sx={{ maxWidth: 150 }}>
+                           {customer.address1Street}
+                         </Typography>
+                       </Box>
+                     )}
+                   </TableCell>
+                   <TableCell>
+                     <Typography variant="body2">
+                       {customer.position || 'N/A'}
+                     </Typography>
+                   </TableCell>
+                   <TableCell>
+                     <Box display="flex" flexWrap="wrap" gap={0.5}>
+                       {customer.labels && customer.labels.length > 0 ? (
+                         customer.labels.slice(0, 2).map((label, index) => (
+                           <Chip
+                             key={index}
+                             label={label}
+                             size="small"
+                             variant="outlined"
+                           />
+                         ))
+                       ) : (
+                         <Typography variant="body2" color="textSecondary">No labels</Typography>
+                       )}
+                       {customer.labels && customer.labels.length > 2 && (
+                         <Chip
+                           label={`+${customer.labels.length - 2}`}
+                           size="small"
+                           variant="outlined"
+                         />
+                       )}
+                     </Box>
+                   </TableCell>
+                   <TableCell>
+                     <Box>
+                       <Chip
+                         label={customer.isSubscribed ? 'Subscribed' : 'Unsubscribed'}
+                         color={customer.isSubscribed ? 'success' : 'default'}
+                         size="small"
+                         onClick={() => handleToggleSubscription(customer._id)}
+                         sx={{ cursor: 'pointer', mb: 0.5 }}
+                       />
+                       <Typography variant="caption" display="block" color="textSecondary">
+                         Email: {customer.emailSubscriberStatus || 'N/A'}
+                       </Typography>
+                       <Typography variant="caption" display="block" color="textSecondary">
+                         SMS: {customer.smsSubscriberStatus || 'N/A'}
+                       </Typography>
+                     </Box>
+                   </TableCell>
+                   <TableCell>
+                     <Chip
+                       label={customer.source || 'website'}
+                       size="small"
+                       variant="outlined"
+                     />
+                   </TableCell>
+                   <TableCell>
+                     <Typography variant="body2">
+                       {formatDate(customer.createdAt)}
+                     </Typography>
+                   </TableCell>
                   <TableCell align="center">
                     <Box display="flex" gap={1} justifyContent="center">
                       <Tooltip title="Edit Customer">
@@ -290,8 +667,22 @@ const Customers = () => {
         </TableContainer>
       </Paper>
 
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <Box display="flex" justifyContent="center" mt={3}>
+          <Pagination
+            count={pagination.totalPages}
+            page={page}
+            onChange={handlePageChange}
+            color="primary"
+            showFirstButton
+            showLastButton
+          />
+        </Box>
+      )}
+
       {/* Add/Edit Customer Dialog */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>
           {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
         </DialogTitle>
@@ -303,63 +694,219 @@ const Customers = () => {
               </Alert>
             )}
             
-            <Box display="flex" gap={2} mb={2}>
-              <TextField
-                fullWidth
-                label="First Name"
-                value={formData.firstName}
-                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                error={!!formErrors.firstName}
-                helperText={formErrors.firstName}
-              />
-              <TextField
-                fullWidth
-                label="Last Name"
-                value={formData.lastName}
-                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                error={!!formErrors.lastName}
-                helperText={formErrors.lastName}
-              />
-            </Box>
+            {/* Basic Information */}
+            <Accordion defaultExpanded>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="h6">Basic Information</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="First Name"
+                      value={formData.firstName}
+                      onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                      error={!!formErrors.firstName}
+                      helperText={formErrors.firstName}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Last Name"
+                      value={formData.lastName}
+                      onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                      error={!!formErrors.lastName}
+                      helperText={formErrors.lastName}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      error={!!formErrors.email}
+                      helperText={formErrors.email}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="Phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="Phone 1"
+                      value={formData.phone1}
+                      onChange={(e) => setFormData({ ...formData, phone1: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="Phone 2"
+                      value={formData.phone2}
+                      onChange={(e) => setFormData({ ...formData, phone2: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Position"
+                      value={formData.position}
+                      onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
 
-            <TextField
-              fullWidth
-              label="Email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              error={!!formErrors.email}
-              helperText={formErrors.email}
-              sx={{ mb: 2 }}
-            />
+            {/* Address Information */}
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="h6">Address Information</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle1" gutterBottom>Address 1</Typography>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Street"
+                      value={formData.address1Street}
+                      onChange={(e) => setFormData({ ...formData, address1Street: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="City"
+                      value={formData.address1City}
+                      onChange={(e) => setFormData({ ...formData, address1City: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="State/Region"
+                      value={formData.address1State}
+                      onChange={(e) => setFormData({ ...formData, address1State: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="ZIP Code"
+                      value={formData.address1Zip}
+                      onChange={(e) => setFormData({ ...formData, address1Zip: e.target.value })}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Country"
+                      value={formData.address1Country}
+                      onChange={(e) => setFormData({ ...formData, address1Country: e.target.value })}
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
 
-            <TextField
-              fullWidth
-              label="Phone"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              sx={{ mb: 2 }}
-            />
-
-            <TextField
-              fullWidth
-              label="Address"
-              multiline
-              rows={2}
-              value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              sx={{ mb: 2 }}
-            />
-
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={formData.isSubscribed}
-                  onChange={(e) => setFormData({ ...formData, isSubscribed: e.target.checked })}
-                />
-              }
-              label="Subscribed to newsletter"
-            />
+            {/* Additional Information */}
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="h6">Additional Information</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <Autocomplete
+                      multiple
+                      freeSolo
+                      options={[]}
+                      value={formData.labels}
+                      onChange={(event, newValue) => {
+                        setFormData({ ...formData, labels: newValue });
+                      }}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="Labels"
+                          placeholder="Add labels (press Enter to add)"
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Email Subscriber Status</InputLabel>
+                      <Select
+                        value={formData.emailSubscriberStatus}
+                        label="Email Subscriber Status"
+                        onChange={(e) => setFormData({ ...formData, emailSubscriberStatus: e.target.value })}
+                      >
+                        <MenuItem value="subscribed">Subscribed</MenuItem>
+                        <MenuItem value="unsubscribed">Unsubscribed</MenuItem>
+                        <MenuItem value="pending">Pending</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>SMS Subscriber Status</InputLabel>
+                      <Select
+                        value={formData.smsSubscriberStatus}
+                        label="SMS Subscriber Status"
+                        onChange={(e) => setFormData({ ...formData, smsSubscriberStatus: e.target.value })}
+                      >
+                        <MenuItem value="subscribed">Subscribed</MenuItem>
+                        <MenuItem value="unsubscribed">Unsubscribed</MenuItem>
+                        <MenuItem value="pending">Pending</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                                     <Grid item xs={12} md={6}>
+                     <FormControl fullWidth>
+                       <InputLabel>Source</InputLabel>
+                       <Select
+                         value={formData.source}
+                         label="Source"
+                         onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+                       >
+                         <MenuItem value="website">Website</MenuItem>
+                         <MenuItem value="csv_import">CSV Import</MenuItem>
+                         {availableSources.filter(source => !['website', 'csv_import'].includes(source)).map((source) => (
+                           <MenuItem key={source} value={source}>
+                             {source}
+                           </MenuItem>
+                         ))}
+                       </Select>
+                     </FormControl>
+                   </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={formData.isSubscribed}
+                          onChange={(e) => setFormData({ ...formData, isSubscribed: e.target.checked })}
+                        />
+                      }
+                      label="Subscribed to newsletter"
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
           </Box>
         </DialogContent>
         <DialogActions>
