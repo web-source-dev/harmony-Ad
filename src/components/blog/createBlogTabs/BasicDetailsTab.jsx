@@ -20,8 +20,9 @@ import {
   IconButton,
   Alert,
 } from '@mui/material';
-import { Description, Category, LocalOffer, Add, Close, PhotoCamera } from '@mui/icons-material';
+import { Description, Category, LocalOffer, Add, Close, PhotoCamera, Storage } from '@mui/icons-material';
 import API from '../../../BackendAPi/ApiProvider';
+import MediaManagerModal from './modals/MediaManagerModal';
 
 const BasicDetailsTab = ({
   title,
@@ -60,6 +61,7 @@ const BasicDetailsTab = ({
   const [newWriterImagePreview, setNewWriterImagePreview] = useState('');
   const [newWriterError, setNewWriterError] = useState('');
   const [newWriterLoading, setNewWriterLoading] = useState(false);
+  const [mediaManagerOpen, setMediaManagerOpen] = useState(false);
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -166,6 +168,16 @@ const BasicDetailsTab = ({
       setNewWriterImageFile(file);
       setNewWriterImagePreview(URL.createObjectURL(file));
       setNewWriterError('');
+    }
+  };
+
+  const handleMediaManagerSelect = (selectedMedia) => {
+    if (selectedMedia) {
+      setNewWriterImagePreview(selectedMedia.url);
+      setNewWriterData(prev => ({
+        ...prev,
+        image: selectedMedia.url
+      }));
     }
   };
 
@@ -682,30 +694,24 @@ const BasicDetailsTab = ({
                </Box>
                
                <Box sx={{ flex: 1 }}>
-                 <input
-                   accept="image/*"
-                   style={{ display: 'none' }}
-                   id="writer-image-upload"
-                   type="file"
-                   onChange={handleWriterImageChange}
-                 />
-                 <label htmlFor="writer-image-upload">
-                   <Button
-                     variant="outlined"
-                     component="span"
-                     startIcon={<PhotoCamera />}
-                     fullWidth
-                     sx={{
-                       borderRadius: '8px',
-                       py: 1.5,
-                       textTransform: 'none',
-                       borderStyle: 'dashed'
-                     }}
-                   >
-                     {newWriterImagePreview ? 'Change Image' : 'Upload Image'}
-                   </Button>
-                 </label>
-                 
+                 <Button
+                   variant="contained"
+                   startIcon={<Storage />}
+                   onClick={() => setMediaManagerOpen(true)}
+                   fullWidth
+                   sx={{
+                     borderRadius: '8px',
+                     py: 1.5,
+                     textTransform: 'none',
+                     backgroundColor: theme.palette.primary.main,
+                     color: '#fff',
+                     '&:hover': {
+                       backgroundColor: theme.palette.primary.dark,
+                     }
+                   }}
+                 >
+                   {newWriterImagePreview ? 'Change Image' : 'Upload Image'}
+                 </Button>
                </Box>
              </Box>
            </Box>
@@ -729,6 +735,15 @@ const BasicDetailsTab = ({
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Media Manager Modal */}
+      <MediaManagerModal
+        open={mediaManagerOpen}
+        onClose={() => setMediaManagerOpen(false)}
+        onSelect={handleMediaManagerSelect}
+        mediaType="image"
+        selectionMode="single"
+      />
     </Stack>
   );
 };

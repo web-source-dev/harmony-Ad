@@ -59,7 +59,8 @@ import {
   ErrorOutline,
   WarningAmber,
   InfoOutlined,
-  AccessibilityOutlined
+  AccessibilityOutlined,
+  Storage
 } from '@mui/icons-material';
 import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
@@ -83,12 +84,15 @@ import TableHeader from '@tiptap/extension-table-header';
 import ResizableImage from './extensions/ResizableImageExtension';
 import FontSizeExtension from './extensions/FontSizeExtension';
 import FontFamilyExtension from './extensions/FontFamilyExtension';
+import CustomVideo from './extensions/CustomVideoExtension';
 import './extensions/ResizableImageStyles.css';
+import './extensions/CustomVideoStyles.css';
 import LinkModal from './modals/LinkModal';
 import ImageModal from './modals/ImageModal';
-import YouTubeModal from './modals/YouTubeModal';
+import VideoModal from './modals/VideoModal';
 import TableModal from './modals/TableModal';
 import TableMenu from './tableComponents/TableMenu';
+import MediaManagerModal from './modals/MediaManagerModal';
 const TEXT_COLORS = [
   '#000000', '#434343', '#666666', '#999999', '#B7B7B7', '#CCCCCC', '#D9D9D9', '#EFEFEF', '#F3F3F3', '#FFFFFF',
   '#980000', '#FF0000', '#FF9900', '#FFFF00', '#00FF00', '#00FFFF', '#4A86E8', '#0000FF', '#9900FF', '#FF00FF',
@@ -161,7 +165,7 @@ const MenuBar = ({ editor }) => {
   // State for modal dialogs
   const [linkModalOpen, setLinkModalOpen] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
-  const [youtubeModalOpen, setYoutubeModalOpen] = useState(false);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [tableModalOpen, setTableModalOpen] = useState(false);
   
   // State for color pickers
@@ -316,19 +320,24 @@ const MenuBar = ({ editor }) => {
     }).run();
   }, [editor]);
 
-  // Handle YouTube video insertion using modal
-  const openYoutubeModal = useCallback(() => {
-    setYoutubeModalOpen(true);
+  // Handle video insertion using modal
+  const openVideoModal = useCallback(() => {
+    setVideoModalOpen(true);
   }, []);
   
-  const handleYoutubeInsert = useCallback((videoData) => {
+  const handleVideoInsert = useCallback((videoData) => {
     if (!editor || !videoData.src) return;
     
-    editor.chain().focus().setYoutubeVideo({ 
+    editor.chain().focus().setCustomVideo({ 
       src: videoData.src,
       width: videoData.width || 640,
       height: videoData.height || 480,
-      controls: videoData.controls
+      controls: videoData.controls,
+      autoplay: videoData.autoplay,
+      muted: videoData.muted,
+      loop: videoData.loop,
+      poster: videoData.poster,
+      type: videoData.type
     }).run();
   }, [editor]);
   
@@ -790,8 +799,8 @@ const MenuBar = ({ editor }) => {
         
         <IconButton 
           size="small" 
-          onClick={openYoutubeModal}
-          title="Insert YouTube Video"
+          onClick={openVideoModal}
+          title="Insert Video (YouTube or Custom URL)"
         >
           <VideoLibrary fontSize="small" />
         </IconButton>
@@ -903,7 +912,7 @@ const MenuBar = ({ editor }) => {
               
             }
           }}
-          sx={{ textTransform: 'none', ml: 2 }}
+          sx={{ textTransform: 'none', ml: 2,display: 'none' }}
         >
           Add Anchors to Headings
         </Button>
@@ -922,10 +931,10 @@ const MenuBar = ({ editor }) => {
         onInsert={handleImageInsert}
       />
       
-      <YouTubeModal 
-        open={youtubeModalOpen} 
-        onClose={() => setYoutubeModalOpen(false)}
-        onInsert={handleYoutubeInsert}
+      <VideoModal 
+        open={videoModalOpen} 
+        onClose={() => setVideoModalOpen(false)}
+        onInsert={handleVideoInsert}
       />
       
       <TableModal 
@@ -1006,7 +1015,11 @@ const ContentTab = ({
   imageAlt,
   setImageAlt,
   url,
-  setUrl
+  setUrl,
+  blogVideo,
+  setBlogVideo,
+  videoPreview,
+  setVideoPreview
 }) => {
   const theme = useTheme();
   const [missingAltTextModalOpen, setMissingAltTextModalOpen] = useState(false);
@@ -1048,6 +1061,10 @@ const ContentTab = ({
   const [currentLinkData, setCurrentLinkData] = useState({ href: '', text: '' });
   const [editingLinkHref, setEditingLinkHref] = useState('');
 
+  // Add state for media manager
+  const [mediaManagerOpen, setMediaManagerOpen] = useState(false);
+  const [videoMediaManagerOpen, setVideoMediaManagerOpen] = useState(false);
+
   // Initialize Tiptap editor
   const editor = useEditor({
     extensions: [
@@ -1076,10 +1093,10 @@ const ContentTab = ({
       Highlight.configure({
         multicolor: true,
       }),
-      Youtube.configure({
-        width: 640,
-        height: 480,
-        controls: true,
+      CustomVideo.configure({
+        HTMLAttributes: {
+          class: 'blog-content-video',
+        },
       }),
       // Table extensions
       Table.configure({
@@ -1451,11 +1468,47 @@ const ContentTab = ({
     }
   };
 
+  // Handle blog video upload
+  const handleVideoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 100 * 1024 * 1024) {
+        alert('Video size should be less than 100MB');
+        return;
+      }
+      setBlogVideo(file);
+      setVideoPreview(URL.createObjectURL(file));
+    }
+  };
+
+  // Handle media manager selection for featured image
+  const handleMediaManagerSelect = (selectedMedia) => {
+    if (selectedMedia) {
+      setImage(null); // Clear file
+      setPreview(selectedMedia.url);
+      setImageAlt(selectedMedia.alt || selectedMedia.name);
+    }
+  };
+
+  // Handle media manager selection for blog video
+  const handleVideoMediaManagerSelect = (selectedMedia) => {
+    if (selectedMedia) {
+      setBlogVideo(null); // Clear file
+      setVideoPreview(selectedMedia.url);
+    }
+  };
+
   // Remove featured image
   const removeImage = () => {
     setImage(null);
     setPreview('');
     setImageAlt('');
+  };
+
+  // Remove blog video
+  const removeVideo = () => {
+    setBlogVideo(null);
+    setVideoPreview('');
   };
 
   // Calculate word count and read time from Tiptap content
@@ -2442,6 +2495,19 @@ const ContentTab = ({
           '& .resizable-image-wrapper.ProseMirror-selectednode': {
             outline: `2px solid ${theme.palette.primary.main}`,
           },
+          // Custom video styles
+          '& .custom-video-wrapper': {
+            margin: '1em 0',
+            display: 'block',
+            '& video, & iframe': {
+              borderRadius: '8px',
+              maxWidth: '100%',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            },
+            '&.ProseMirror-selectednode': {
+              outline: `2px solid ${theme.palette.primary.main}`,
+            },
+          },
         },
         // Add styles for drag and drop visual feedback
         ...(isDragging && {
@@ -2670,7 +2736,7 @@ const ContentTab = ({
         size="small"
         startIcon={<TocOutlined />}
         onClick={handleOpenTocDialog}
-        sx={{ textTransform: 'none' }}
+        sx={{ textTransform: 'none',display: 'none' }}
       >
         Table of Contents
       </Button>
@@ -2680,7 +2746,7 @@ const ContentTab = ({
         size="small"
         startIcon={<AccessAlarmsOutlined />}
         onClick={handleCheckAccessibility}
-        sx={{ textTransform: 'none' }}
+        sx={{ textTransform: 'none',display: 'none' }}
       >
         Accessibility
       </Button>
@@ -2761,37 +2827,55 @@ const ContentTab = ({
         Featured Image
       </Typography>
       
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <input
-          accept="image/*"
-          type="file"
-          id="image-upload"
-          hidden
-          onChange={handleImageChange}
-        />
-        <label htmlFor="image-upload">
-          <Button
-            variant="contained"
-            component="span"
-            startIcon={<PhotoCamera />}
-            sx={{
-              backgroundColor: preview ? theme.palette.primary.main : 'transparent',
-              color: preview ? '#fff' : theme.palette.primary.main,
-              border: preview ? 'none' : `1px solid ${theme.palette.primary.main}`,
-              borderRadius: '10px',
-              px: 3,
-              py: 1.2,
-              textTransform: 'none',
-              fontWeight: 500,
-              boxShadow: preview ? theme.shadows[2] : 'none',
-              '&:hover': {
-                backgroundColor: preview ? theme.palette.primary.dark : 'rgba(0, 0, 0, 0.04)',
-              }
-            }}
-          >
-            {preview ? 'Change Image' : 'Upload Image'}
-          </Button>
-        </label>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+        <Button
+          variant="contained"
+          startIcon={<Storage />}
+          onClick={() => setMediaManagerOpen(true)}
+          sx={{
+            borderRadius: '10px',
+            px: 3,
+            py: 1.2,
+            textTransform: 'none',
+            fontWeight: 500,
+            backgroundColor: theme.palette.primary.main,
+            color: '#fff',
+            boxShadow: theme.shadows[2],
+            '&:hover': {
+              backgroundColor: theme.palette.primary.dark,
+            }
+          }}
+        >
+          {preview ? 'Change Image' : 'Upload Image'}
+        </Button>
+        
+        <Button
+          variant="outlined"
+          startIcon={<PhotoCamera />}
+          component="label"
+          sx={{
+            borderRadius: '10px',
+            px: 3,
+            py: 1.2,
+            textTransform: 'none',
+            fontWeight: 500,
+            borderColor: theme.palette.primary.main,
+            color: theme.palette.primary.main,
+            '&:hover': {
+              borderColor: theme.palette.primary.dark,
+              backgroundColor: theme.palette.primary.light,
+            }
+          }}
+        >
+          Upload New Image
+          <input
+            type="file"
+            hidden
+            accept="image/*"
+            onChange={handleImageChange}
+          />
+        </Button>
+        
         {!preview && (
           <Typography variant="caption" color="text.secondary">
             Recommended size: 1200 x 630 pixels (Max: 5MB)
@@ -2900,6 +2984,133 @@ const ContentTab = ({
           />
         </Box>
       )}
+
+      {/* Blog Video Section */}
+      <Typography 
+        variant="subtitle1" 
+        sx={{ 
+          mb: 2,
+          mt: 4,
+          fontWeight: 600,
+          color: theme.palette.text.primary,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1
+        }}
+      >
+        <VideoLibrary fontSize="small" />
+        Blog Video
+      </Typography>
+      
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+        <Button
+          variant="contained"
+          startIcon={<VideoLibrary />}
+          component="label"
+          sx={{
+            borderRadius: '10px',
+            px: 3,
+            py: 1.2,
+            textTransform: 'none',
+            fontWeight: 500,
+            backgroundColor: theme.palette.secondary.main,
+            color: '#fff',
+            boxShadow: theme.shadows[2],
+            '&:hover': {
+              backgroundColor: theme.palette.secondary.dark,
+            }
+          }}
+        >
+          {videoPreview ? 'Change Video' : 'Upload New Video'}
+          <input
+            type="file"
+            hidden
+            accept="video/*"
+            onChange={handleVideoChange}
+          />
+        </Button>
+        
+        <Button
+          variant="outlined"
+          startIcon={<Storage />}
+          onClick={() => setVideoMediaManagerOpen(true)}
+          sx={{
+            borderRadius: '10px',
+            px: 3,
+            py: 1.2,
+            textTransform: 'none',
+            fontWeight: 500,
+            borderColor: theme.palette.secondary.main,
+            color: theme.palette.secondary.main,
+            '&:hover': {
+              borderColor: theme.palette.secondary.dark,
+              backgroundColor: theme.palette.secondary.light,
+            }
+          }}
+        >
+          Select from Media Library
+        </Button>
+        
+        {!videoPreview && (
+          <Typography variant="caption" color="text.secondary">
+            Recommended format: MP4, WebM (Max: 100MB)
+          </Typography>
+        )}
+      </Box>
+
+      {videoPreview && (
+        <Box sx={{ mt: 3 }}>
+          <Box sx={{ position: 'relative', display: 'inline-block', mb: 2 }}>
+            <Paper
+              elevation={3}
+              sx={{
+                p: 1,
+                borderRadius: '12px',
+                overflow: 'hidden',
+                backgroundColor: theme.palette.background.default,
+              }}
+            >
+              <video
+                src={videoPreview}
+                controls
+                style={{ 
+                  maxWidth: '100%', 
+                  height: 'auto',
+                  maxHeight: '300px',
+                  borderRadius: '8px',
+                  display: 'block',
+                }}
+              />
+            </Paper>
+            <IconButton
+              sx={{
+                position: 'absolute',
+                top: -12,
+                right: -12,
+                backgroundColor: theme.palette.error.main,
+                color: '#fff',
+                boxShadow: theme.shadows[2],
+                '&:hover': {
+                  backgroundColor: theme.palette.error.dark,
+                },
+                border: `2px solid ${theme.palette.background.paper}`,
+              }}
+              size="small"
+              onClick={removeVideo}
+            >
+              <Close fontSize="small" />
+            </IconButton>
+            <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
+              <Chip 
+                label="Blog Video" 
+                size="small" 
+                color="secondary" 
+                sx={{ borderRadius: '8px' }}
+              />
+            </Box>
+          </Box>
+        </Box>
+      )}
       
       {/* Alt text prompt modal for image in content */}
       <ImageModal 
@@ -2923,6 +3134,24 @@ const ContentTab = ({
         }}
         onInsert={handleImageInsert}
         initialFile={droppedImage}
+      />
+
+      {/* Media Manager Modal for featured image */}
+      <MediaManagerModal
+        open={mediaManagerOpen}
+        onClose={() => setMediaManagerOpen(false)}
+        onSelect={handleMediaManagerSelect}
+        mediaType="image"
+        selectionMode="single"
+      />
+
+      {/* Media Manager Modal for blog video */}
+      <MediaManagerModal
+        open={videoMediaManagerOpen}
+        onClose={() => setVideoMediaManagerOpen(false)}
+        onSelect={handleVideoMediaManagerSelect}
+        mediaType="video"
+        selectionMode="single"
       />
 
       <TableOfContentsDialog />

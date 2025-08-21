@@ -1,0 +1,58 @@
+/* Custom Video Styles for Tiptap Editor */
+
+.custom-video-wrapper {
+  position: relative;
+  margin: 1em 0;
+  display: block;
+  text-align: center;
+}
+
+.custom-video-wrapper video,
+.custom-video-wrapper iframe {
+  border-radius: 8px;
+  max-width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: block;
+  margin: 0 auto;
+}
+
+.custom-video-wrapper.ProseMirror-selectednode {
+  outline: 2px solid #1976d2;
+  border-radius: 8px;
+}
+
+.custom-video-wrapper video {
+  background-color: #000;
+}
+
+.custom-video-wrapper iframe {
+  border: none;
+}
+
+/* Video controls styling */
+.custom-video-wrapper video::-webkit-media-controls {
+  border-radius: 8px;
+}
+
+.custom-video-wrapper video::-webkit-media-controls-panel {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* Responsive video sizing */
+@media (max-width: 768px) {
+  .custom-video-wrapper video,
+  .custom-video-wrapper iframe {
+    width: 100% !important;
+    height: auto !important;
+  }
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .custom-video-wrapper video,
+[data-theme="dark"] .custom-video-wrapper iframe {
+  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .custom-video-wrapper.ProseMirror-selectednode {
+  outline: 2px solid #90caf9;
+}

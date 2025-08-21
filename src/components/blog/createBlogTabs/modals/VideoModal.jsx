@@ -13,15 +13,15 @@ import {
   Divider,
   Alert,
 } from '@mui/material';
-import { Close, Image, AccessibilityNew, Storage } from '@mui/icons-material';
+import { Close, VideoLibrary, AccessibilityNew, Storage } from '@mui/icons-material';
 import MediaManagerModal from './MediaManagerModal';
 
-const ImageModal = ({ open, onClose, onInsert, initialFile }) => {
+const VideoModal = ({ open, onClose, onInsert, initialFile }) => {
   const theme = useTheme();
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState('');
   const [altText, setAltText] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
   const [error, setError] = useState('');
   const [mediaManagerOpen, setMediaManagerOpen] = useState(false);
   
@@ -42,15 +42,16 @@ const ImageModal = ({ open, onClose, onInsert, initialFile }) => {
   }, [initialFile, open]);
   
   const handleSubmit = () => {
-    if (imageUrl) {
+    if (videoUrl) {
       onInsert({
-        src: imageUrl.trim(),
-        alt: altText.trim()
+        src: videoUrl.trim(),
+        alt: altText.trim(),
+        type: 'custom'
       });
       resetForm();
       onClose();
     } else {
-      setError('Please select an image from the Media Manager');
+      setError('Please select a video from the Media Manager');
     }
   };
   
@@ -58,7 +59,7 @@ const ImageModal = ({ open, onClose, onInsert, initialFile }) => {
     setSelectedFile(null);
     setPreview('');
     setAltText('');
-    setImageUrl('');
+    setVideoUrl('');
     setError('');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -72,7 +73,7 @@ const ImageModal = ({ open, onClose, onInsert, initialFile }) => {
   
   const handleMediaManagerSelect = (selectedMedia) => {
     if (selectedMedia) {
-      setImageUrl(selectedMedia.url);
+      setVideoUrl(selectedMedia.url);
       setAltText(selectedMedia.alt || selectedMedia.name);
     }
   };
@@ -98,8 +99,8 @@ const ImageModal = ({ open, onClose, onInsert, initialFile }) => {
         borderBottom: `1px solid ${theme.palette.divider}`
       }}>
         <Box display="flex" alignItems="center" gap={1}>
-          <Image color="primary" />
-          <Typography variant="h6" fontWeight={600}>Insert Image</Typography>
+          <VideoLibrary color="primary" />
+          <Typography variant="h6" fontWeight={600}>Insert Video</Typography>
         </Box>
         <IconButton size="small" onClick={handleClose}>
           <Close fontSize="small" />
@@ -119,7 +120,7 @@ const ImageModal = ({ open, onClose, onInsert, initialFile }) => {
         
         <Box sx={{ textAlign: 'center', py: 4 }}>
           <Typography variant="h6" gutterBottom>
-            Upload Image
+            Upload Video
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
             Upload, browse and select from your media files
@@ -128,17 +129,17 @@ const ImageModal = ({ open, onClose, onInsert, initialFile }) => {
             variant="contained"
             onClick={() => setMediaManagerOpen(true)}
           >
-            Upload Image
+            Upload Video
           </Button>
         </Box>
         
-        {imageUrl && (
+        {videoUrl && (
           <>
             <Divider sx={{ my: 2 }} />
             <Box sx={{ textAlign: 'center', mb: 2 }}>
-              <img 
-                src={imageUrl} 
-                alt="Selected" 
+              <video 
+                src={videoUrl} 
+                controls
                 style={{ 
                   maxWidth: '100%', 
                   maxHeight: '200px',
@@ -159,7 +160,7 @@ const ImageModal = ({ open, onClose, onInsert, initialFile }) => {
           <TextField
             label="Alt Text"
             name="alt-text"
-            placeholder="Describe the image for accessibility and SEO"
+            placeholder="Describe the video for accessibility and SEO"
             fullWidth
             required
             value={altText}
@@ -172,7 +173,7 @@ const ImageModal = ({ open, onClose, onInsert, initialFile }) => {
                 borderRadius: '10px',
               }
             }}
-            helperText="Describe the image content for screen readers and SEO (required)"
+            helperText="Describe the video content for screen readers and SEO (required)"
           />
         </Box>
       </DialogContent>
@@ -191,13 +192,13 @@ const ImageModal = ({ open, onClose, onInsert, initialFile }) => {
         <Button 
           onClick={handleSubmit}
           variant="contained"
-          disabled={!imageUrl || !altText.trim()}
+          disabled={!videoUrl || !altText.trim()}
           sx={{ 
             borderRadius: '10px',
             textTransform: 'none',
           }}
         >
-          Insert Image
+          Insert Video
         </Button>
       </DialogActions>
 
@@ -206,11 +207,11 @@ const ImageModal = ({ open, onClose, onInsert, initialFile }) => {
         open={mediaManagerOpen}
         onClose={() => setMediaManagerOpen(false)}
         onSelect={handleMediaManagerSelect}
-        mediaType="image"
+        mediaType="video"
         selectionMode="single"
       />
     </Dialog>
   );
 };
 
-export default ImageModal; 
+export default VideoModal;

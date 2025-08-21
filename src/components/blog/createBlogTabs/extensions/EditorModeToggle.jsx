@@ -106,20 +106,6 @@ const EditorModeToggle = ({ mode, onChange }) => {
         } 
         placement="bottom"
       >
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center',
-          color: theme.palette.info.main,
-          cursor: 'help',
-          '&:hover': { color: theme.palette.info.dark }
-        }}>
-          <InfoIcon fontSize="small" sx={{ mr: 0.5 }} />
-          <Typography variant="caption">
-            {mode === 'richText' 
-              ? 'Using visual editor' 
-              : 'Editing raw HTML code'}
-          </Typography>
-        </Box>
       </Tooltip>
     </Box>
   );

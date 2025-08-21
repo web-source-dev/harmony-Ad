@@ -14,7 +14,8 @@ import {
   CardContent,
   CardMedia,
 } from '@mui/material';
-import { Facebook, Twitter, PhotoCamera, Close, Share, Link, Preview } from '@mui/icons-material';
+import { Facebook, Twitter, PhotoCamera, Close, Share, Link, Preview, Storage } from '@mui/icons-material';
+import MediaManagerModal from './modals/MediaManagerModal';
 
 const SocialMediaTab = ({
   title,
@@ -39,6 +40,10 @@ const SocialMediaTab = ({
   setTwitterImagePreview,
 }) => {
   const theme = useTheme();
+  
+  // State for media manager modals
+  const [ogMediaManagerOpen, setOgMediaManagerOpen] = React.useState(false);
+  const [twitterMediaManagerOpen, setTwitterMediaManagerOpen] = React.useState(false);
 
   const handleOgImageChange = (e) => {
     const file = e.target.files[0];
@@ -72,6 +77,22 @@ const SocialMediaTab = ({
   const removeTwitterImage = () => {
     setTwitterImage(null);
     setTwitterImagePreview('');
+  };
+
+  // Handle media manager selection for OG image
+  const handleOgMediaManagerSelect = (selectedMedia) => {
+    if (selectedMedia) {
+      setOgImage(null); // Clear file
+      setOgImagePreview(selectedMedia.url);
+    }
+  };
+
+  // Handle media manager selection for Twitter image
+  const handleTwitterMediaManagerSelect = (selectedMedia) => {
+    if (selectedMedia) {
+      setTwitterImage(null); // Clear file
+      setTwitterImagePreview(selectedMedia.url);
+    }
   };
 
   // Use blog values for previews if social media fields are not set
@@ -178,32 +199,23 @@ const SocialMediaTab = ({
             />
 
             <Typography variant="subtitle2" sx={{ mb: 1 }}>OG Image</Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-              <input
-                accept="image/*"
-                type="file"
-                id="og-image-upload"
-                hidden
-                onChange={handleOgImageChange}
-              />
-              <label htmlFor="og-image-upload">
-                <Button
-                  variant="outlined"
-                  component="span"
-                  startIcon={<PhotoCamera />}
-                  sx={{
-                    borderRadius: '8px',
-                    borderColor: '#4267B2',
-                    color: '#4267B2',
-                    '&:hover': {
-                      borderColor: '#4267B2',
-                      backgroundColor: 'rgba(66, 103, 178, 0.08)',
-                    }
-                  }}
-                >
-                  {ogImagePreview ? 'Change Image' : 'Upload Image'}
-                </Button>
-              </label>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+              <Button
+                variant="contained"
+                startIcon={<Storage />}
+                onClick={() => setOgMediaManagerOpen(true)}
+                sx={{
+                  borderRadius: '8px',
+                  backgroundColor: '#4267B2',
+                  color: '#fff',
+                  '&:hover': {
+                    backgroundColor: '#365899',
+                  }
+                }}
+              >
+                {ogImagePreview ? 'Change Image' : 'Upload Image'}
+              </Button>
+              
               <Typography variant="caption" color="text.secondary">
                 Recommended size: 1200 x 630 pixels
               </Typography>
@@ -352,32 +364,23 @@ const SocialMediaTab = ({
             />
 
             <Typography variant="subtitle2" sx={{ mb: 1 }}>Twitter Image</Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-              <input
-                accept="image/*"
-                type="file"
-                id="twitter-image-upload"
-                hidden
-                onChange={handleTwitterImageChange}
-              />
-              <label htmlFor="twitter-image-upload">
-                <Button
-                  variant="outlined"
-                  component="span"
-                  startIcon={<PhotoCamera />}
-                  sx={{
-                    borderRadius: '8px',
-                    borderColor: '#1DA1F2',
-                    color: '#1DA1F2',
-                    '&:hover': {
-                      borderColor: '#1DA1F2',
-                      backgroundColor: 'rgba(29, 161, 242, 0.08)',
-                    }
-                  }}
-                >
-                  {twitterImagePreview ? 'Change Image' : 'Upload Image'}
-                </Button>
-              </label>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+              <Button
+                variant="contained"
+                startIcon={<Storage />}
+                onClick={() => setTwitterMediaManagerOpen(true)}
+                sx={{
+                  borderRadius: '8px',
+                  backgroundColor: '#1DA1F2',
+                  color: '#fff',
+                  '&:hover': {
+                    backgroundColor: '#1a8cd8',
+                  }
+                }}
+              >
+                {twitterImagePreview ? 'Change Image' : 'Upload Image'}
+              </Button>
+              
               <Typography variant="caption" color="text.secondary">
                 Recommended size: 1200 x 675 pixels
               </Typography>
@@ -470,6 +473,23 @@ const SocialMediaTab = ({
           </Box>
         </Grid>
       </Grid>
+
+      {/* Media Manager Modals */}
+      <MediaManagerModal
+        open={ogMediaManagerOpen}
+        onClose={() => setOgMediaManagerOpen(false)}
+        onSelect={handleOgMediaManagerSelect}
+        mediaType="image"
+        selectionMode="single"
+      />
+
+      <MediaManagerModal
+        open={twitterMediaManagerOpen}
+        onClose={() => setTwitterMediaManagerOpen(false)}
+        onSelect={handleTwitterMediaManagerSelect}
+        mediaType="image"
+        selectionMode="single"
+      />
     </Box>
   );
 };

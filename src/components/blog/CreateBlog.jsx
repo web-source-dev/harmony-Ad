@@ -15,13 +15,6 @@ import {
   Divider,
   Fade,
   Chip,
-  FormControlLabel,
-  Switch,
-  Autocomplete,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
   Tabs,
   Tab,
   Badge,
@@ -194,6 +187,8 @@ const CreateBlog = () => {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState('');
   const [imageAlt, setImageAlt] = useState('');
+  const [blogVideo, setBlogVideo] = useState(null);
+  const [videoPreview, setVideoPreview] = useState('');
   const [url, setUrl] = useState('');
   const [wordCount, setWordCount] = useState(0);
   const [estimatedReadTime, setEstimatedReadTime] = useState(0);
@@ -472,6 +467,9 @@ const CreateBlog = () => {
         setPreview(formatImageUrl(data.image));
       }
       setImageAlt(data.imageAlt || '');
+      if (data.blogVideo) {
+        setVideoPreview(data.blogVideo);
+      }
       setUrl(data.url || '');
       setWordCount(data.wordCount || 0);
       setEstimatedReadTime(data.estimatedReadTime || 0);
@@ -570,6 +568,9 @@ const CreateBlog = () => {
       }
       if (imageAlt) {
         formData.append('imageAlt', imageAlt);
+      }
+      if (blogVideo) {
+        formData.append('blogVideo', blogVideo);
       }
       if (url) {
         formData.append('url', url);
@@ -903,6 +904,10 @@ const CreateBlog = () => {
                 setWordCount={setWordCount}
                 estimatedReadTime={estimatedReadTime}
                 setEstimatedReadTime={setEstimatedReadTime}
+                blogVideo={blogVideo}
+                setBlogVideo={setBlogVideo}
+                videoPreview={videoPreview}
+                setVideoPreview={setVideoPreview}
               />
             </TabPanel>
             
