@@ -57,11 +57,13 @@ const ManageBlog = () => {
     if (searchTerm.trim() === '') {
       setFilteredBlogs(blogs);
     } else {
-      const filtered = blogs.filter(blog => 
-        blog.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      const filtered = blogs.filter(blog =>
+        blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (blog.description && blog.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
         blog.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        blog.category.toLowerCase().includes(searchTerm.toLowerCase())
+        blog.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (blog.writer?.name && blog.writer.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (blog.writer?.email && blog.writer.email.toLowerCase().includes(searchTerm.toLowerCase()))
       );
       setFilteredBlogs(filtered);
     }
@@ -71,8 +73,20 @@ const ManageBlog = () => {
     setLoading(true);
     try {
       const response = await API.get('/api/blogs/all');
-      setBlogs(response.data);
-      setFilteredBlogs(response.data);
+      // Sort blogs by published date (newest first)
+      const sortedBlogs = response.data.sort((a, b) => {
+        // If both have publishedAt dates, compare them
+        if (a.publishedAt && b.publishedAt) {
+          return new Date(b.publishedAt) - new Date(a.publishedAt);
+        }
+        // If only one has publishedAt, prioritize the one with publishedAt
+        if (a.publishedAt && !b.publishedAt) return -1;
+        if (!a.publishedAt && b.publishedAt) return 1;
+        // If neither has publishedAt, sort by createdAt
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+      setBlogs(sortedBlogs);
+      setFilteredBlogs(sortedBlogs);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -124,7 +138,7 @@ const ManageBlog = () => {
   };
 
   const getBlogDate = (blog) => {
-    if (blog.status === 'published' && blog.publishedAt) {
+    if (blog.publishedAt) {
       return { date: blog.publishedAt, label: 'Published' };
     } else if (blog.status === 'scheduled' && blog.scheduledFor) {
       return { date: blog.scheduledFor, label: 'Scheduled for' };
@@ -277,7 +291,7 @@ const ManageBlog = () => {
             }}
           >
             <TextField
-              placeholder="Search by title, description, status, or category..."
+              placeholder="Search by title, description, status, category, writer name, or email..."
               variant="outlined"
               size="small"
               value={searchTerm}
@@ -312,8 +326,8 @@ const ManageBlog = () => {
               <Table>
                 <TableHead>
                   <TableRow sx={{ bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)' }}>
-                    <TableCell 
-                      sx={{ 
+                    <TableCell
+                      sx={{
                         fontWeight: 600,
                         fontSize: '0.95rem',
                         color: theme.palette.text.primary,
@@ -323,8 +337,19 @@ const ManageBlog = () => {
                     >
                       Title
                     </TableCell>
-                    <TableCell 
-                      sx={{ 
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '0.95rem',
+                        color: theme.palette.text.primary,
+                        py: 2,
+                        borderBottom: `1px solid ${theme.palette.divider}`
+                      }}
+                    >
+                      Writer
+                    </TableCell>
+                    <TableCell
+                      sx={{
                         fontWeight: 600,
                         fontSize: '0.95rem',
                         color: theme.palette.text.primary,
@@ -381,6 +406,9 @@ const ManageBlog = () => {
                           <Skeleton animation="wave" height={40} width={120} />
                         </TableCell>
                         <TableCell>
+                          <Skeleton animation="wave" height={40} width={120} />
+                        </TableCell>
+                        <TableCell>
                           <Skeleton animation="wave" height={40} width={80} />
                         </TableCell>
                         <TableCell>
@@ -393,7 +421,7 @@ const ManageBlog = () => {
                     ))
                   ) : filteredBlogs.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} align="center" sx={{ py: 5 }}>
+                      <TableCell colSpan={6} align="center" sx={{ py: 5 }}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, my: 4 }}>
                           <Avatar 
                             sx={{ 
@@ -428,8 +456,8 @@ const ManageBlog = () => {
                             transition: 'background-color 0.2s'
                           }}
                         >
-                          <TableCell 
-                            sx={{ 
+                          <TableCell
+                            sx={{
                               color: theme.palette.text.primary,
                               fontWeight: 500,
                               py: 2.5,
@@ -439,22 +467,22 @@ const ManageBlog = () => {
                             <Tooltip title={blog.title} placement="top-start" arrow>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                 {blog.image ? (
-                                  <Avatar 
-                                    src={`${blog.image}`} 
+                                  <Avatar
+                                    src={`${blog.image}`}
                                     variant="rounded"
-                                    sx={{ 
-                                      width: 40, 
-                                      height: 40, 
+                                    sx={{
+                                      width: 40,
+                                      height: 40,
                                       borderRadius: '8px',
                                       border: `1px solid ${theme.palette.divider}`
                                     }}
                                   />
                                 ) : (
-                                  <Avatar 
-                                    variant="rounded" 
+                                  <Avatar
+                                    variant="rounded"
                                     sx={{
-                                      width: 40, 
-                                      height: 40, 
+                                      width: 40,
+                                      height: 40,
                                       bgcolor: `${theme.palette.primary.main}20`,
                                       color: theme.palette.primary.main,
                                       borderRadius: '8px'
@@ -464,17 +492,17 @@ const ManageBlog = () => {
                                   </Avatar>
                                 )}
                                 <Box sx={{ maxWidth: 'calc(100% - 60px)' }}>
-                                  <Typography 
-                                    noWrap 
+                                  <Typography
+                                    noWrap
                                     fontWeight={500}
                                     sx={{ display: 'block' }}
                                   >
                                     {getTruncatedTitle(blog.title)}
                                   </Typography>
                                   {blog.description && (
-                                    <Typography 
-                                      variant="caption" 
-                                      color="textSecondary" 
+                                    <Typography
+                                      variant="caption"
+                                      color="textSecondary"
                                       noWrap
                                       sx={{ display: 'block' }}
                                     >
@@ -485,8 +513,58 @@ const ManageBlog = () => {
                               </Box>
                             </Tooltip>
                           </TableCell>
-                          <TableCell 
-                            sx={{ 
+                          <TableCell
+                            sx={{
+                              color: theme.palette.text.primary,
+                              py: 2.5,
+                              borderBottom: `1px solid ${theme.palette.divider}`
+                            }}
+                          >
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                              {blog.writer?.image ? (
+                                <Avatar
+                                  src={blog.writer.image}
+                                  sx={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: '50%',
+                                    border: `1px solid ${theme.palette.divider}`
+                                  }}
+                                />
+                              ) : (
+                                <Avatar
+                                  sx={{
+                                    width: 32,
+                                    height: 32,
+                                    bgcolor: `${theme.palette.secondary.main}20`,
+                                    color: theme.palette.secondary.main,
+                                    fontSize: '0.875rem',
+                                    fontWeight: 600
+                                  }}
+                                >
+                                  {blog.writer?.name ? blog.writer.name.charAt(0).toUpperCase() : 'W'}
+                                </Avatar>
+                              )}
+                              <Box>
+                                <Typography
+                                  variant="body2"
+                                  fontWeight={500}
+                                  sx={{ display: 'block', lineHeight: 1.2 }}
+                                >
+                                  {blog.writer?.name || 'Unknown Writer'}
+                                </Typography>
+                                <Typography
+                                  variant="caption"
+                                  color="textSecondary"
+                                  sx={{ display: 'block', lineHeight: 1.2 }}
+                                >
+                                  {blog.writer?.email || 'No email'}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          </TableCell>
+                          <TableCell
+                            sx={{
                               color: theme.palette.text.secondary,
                               py: 2.5,
                               borderBottom: `1px solid ${theme.palette.divider}`
