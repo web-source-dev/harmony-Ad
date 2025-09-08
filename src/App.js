@@ -10,6 +10,7 @@ import ManageBlog from './components/blog/ManageBlog';
 import AdminDonations from './components/admin/Donations';
 import AdminCustomers from './components/admin/Customers';
 import Analytics from './components/admin/Analytics';
+import VideoManagement from './components/admin/VideoManagement';
 
 const App = () => {
   return (
@@ -28,6 +29,7 @@ const App = () => {
             <Route path="blogs" element={<AdminBlogs />} />
             <Route path="donations" element={<AdminDonations />} />
             <Route path="customers" element={<AdminCustomers />} />
+            <Route path="social-media" element={<VideoManagement />} />
             <Route path="blog/create" element={<CreateBlog />} />
             <Route path="blog/edit/:id" element={<CreateBlog />} />
             <Route path="blog/manage" element={<ManageBlog />} />

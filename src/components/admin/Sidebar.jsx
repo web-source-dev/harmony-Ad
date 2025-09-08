@@ -25,6 +25,7 @@ import {
   AttachMoney as DonationIcon,
   PersonAdd as UserIcon,
   Analytics as AnalyticsIcon,
+  VideoLibrary as VideoIcon,
 } from '@mui/icons-material';
 import { Link, useLocation } from 'react-router-dom';
 
@@ -43,6 +44,11 @@ const menuItems = [
     text: 'Blogs', 
     icon: ArticleIcon, 
     path: '/blog/manage' 
+  },
+  { 
+    text: 'Social Media', 
+    icon: VideoIcon, 
+    path: '/social-media' 
   },
   { 
     text: 'Customers', 
@@ -123,7 +129,7 @@ const Sidebar = () => {
         <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
           Content Management
         </ListSubheader>
-        {menuItems.slice(2, 3).map((item) => (
+        {menuItems.slice(2, 4).map((item) => (
           <ListItem
             button
             key={item.text}
@@ -161,7 +167,7 @@ const Sidebar = () => {
         <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
           User Management
         </ListSubheader>
-        {menuItems.slice(3, 4).map((item) => (
+        {menuItems.slice(4, 5).map((item) => (
           <ListItem
             button
             key={item.text}
@@ -199,7 +205,7 @@ const Sidebar = () => {
         <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
           Engagement
         </ListSubheader>
-        {menuItems.slice(4, 5).map((item) => (
+        {menuItems.slice(5, 6).map((item) => (
           <ListItem
             button
             key={item.text}

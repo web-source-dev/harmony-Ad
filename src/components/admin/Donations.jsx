@@ -103,7 +103,6 @@ const AdminDonations = () => {
                 <TableCell>Designation</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Date</TableCell>
-                <TableCell>Transaction ID</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -124,9 +123,6 @@ const AdminDonations = () => {
                     />
                   </TableCell>
                   <TableCell>{formatDate(donation.submittedAt)}</TableCell>
-                  <TableCell>
-                    {donation.transactionId || 'N/A'}
-                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

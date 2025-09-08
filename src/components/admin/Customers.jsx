@@ -125,7 +125,7 @@ const Customers = () => {
         limit: limit.toString(),
         ...Object.fromEntries(Object.entries(filters).filter(([_, value]) => value !== ''))
       });
-      
+
       const response = await API.get(`/api/admin/customers?${params}`);
       setCustomers(response.data.customers);
       setPagination(response.data.pagination);
@@ -143,7 +143,7 @@ const Customers = () => {
         API.get('/api/admin/customers/sources'),
         API.get('/api/admin/customers/labels')
       ]);
-      
+
       setAvailableSources(sourcesResponse.data);
       setAvailableLabels(labelsResponse.data);
     } catch (err) {
@@ -370,132 +370,132 @@ const Customers = () => {
         </Box>
       </Box>
 
-             {/* Filters Section */}
-       {showFilters && (
-         <Paper sx={{ mb: 3, p: 2 }}>
-           <Grid container spacing={2}>
-             <Grid item xs={12} md={2}>
-               <TextField
-                 fullWidth
-                 size="small"
-                 label="Search"
-                 placeholder="Name, email, phone..."
-                 value={filters.search}
-                 onChange={(e) => handleFilterChange('search', e.target.value)}
-               />
-             </Grid>
-             <Grid item xs={12} md={2}>
-               <FormControl fullWidth size="small">
-                 <InputLabel>Subscription</InputLabel>
-                 <Select
-                   value={filters.subscriptionStatus}
-                   label="Subscription"
-                   onChange={(e) => handleFilterChange('subscriptionStatus', e.target.value)}
-                 >
-                   <MenuItem value="">All</MenuItem>
-                   <MenuItem value="subscribed">Subscribed</MenuItem>
-                   <MenuItem value="unsubscribed">Unsubscribed</MenuItem>
-                 </Select>
-               </FormControl>
-             </Grid>
-             <Grid item xs={12} md={2}>
-               <FormControl fullWidth size="small">
-                 <InputLabel>Email Status</InputLabel>
-                 <Select
-                   value={filters.emailStatus}
-                   label="Email Status"
-                   onChange={(e) => handleFilterChange('emailStatus', e.target.value)}
-                 >
-                   <MenuItem value="">All</MenuItem>
-                   <MenuItem value="subscribed">Subscribed</MenuItem>
-                   <MenuItem value="unsubscribed">Unsubscribed</MenuItem>
-                   <MenuItem value="pending">Pending</MenuItem>
-                 </Select>
-               </FormControl>
-             </Grid>
-             <Grid item xs={12} md={2}>
-               <FormControl fullWidth size="small">
-                 <InputLabel>SMS Status</InputLabel>
-                 <Select
-                   value={filters.smsStatus}
-                   label="SMS Status"
-                   onChange={(e) => handleFilterChange('smsStatus', e.target.value)}
-                 >
-                   <MenuItem value="">All</MenuItem>
-                   <MenuItem value="subscribed">Subscribed</MenuItem>
-                   <MenuItem value="unsubscribed">Unsubscribed</MenuItem>
-                   <MenuItem value="pending">Pending</MenuItem>
-                 </Select>
-               </FormControl>
-             </Grid>
-             <Grid item xs={12} md={2}>
-               <FormControl fullWidth size="small">
-                 <InputLabel>Source</InputLabel>
-                 <Select
-                   value={filters.source}
-                   label="Source"
-                   onChange={(e) => handleFilterChange('source', e.target.value)}
-                 >
-                   <MenuItem value="">All</MenuItem>
-                   {availableSources.map((source) => (
-                     <MenuItem key={source} value={source}>
-                       {source}
-                     </MenuItem>
-                   ))}
-                 </Select>
-               </FormControl>
-             </Grid>
-             <Grid item xs={12} md={2}>
-               <FormControl fullWidth size="small">
-                 <InputLabel>Labels</InputLabel>
-                 <Select
-                   value={filters.labels}
-                   label="Labels"
-                   onChange={(e) => handleFilterChange('labels', e.target.value)}
-                 >
-                   <MenuItem value="">All</MenuItem>
-                   {availableLabels.map((label) => (
-                     <MenuItem key={label} value={label}>
-                       {label}
-                     </MenuItem>
-                   ))}
-                 </Select>
-               </FormControl>
-             </Grid>
-        
-             <Grid item xs={12} md={11}>
-               <Box display="flex" gap={2}>
-                 <TextField
-                   size="small"
-                   label="Date From"
-                   type="date"
-                   value={filters.dateFrom}
-                   onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
-                   InputLabelProps={{ shrink: true }}
-                 />
-                 <TextField
-                   size="small"
-                   label="Date To"
-                   type="date"
-                   value={filters.dateTo}
-                   onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-                   InputLabelProps={{ shrink: true }}
-                 />
-               </Box>
-             </Grid>
-             <Grid item xs={12} md={1}>
-               <Button
-                 fullWidth
-                 variant="outlined"
-                 size="small"
-                 onClick={clearFilters}
-               >
-                 Clear
-               </Button>
-             </Grid>
-           </Grid>
-         </Paper>
-       )}
+      {/* Filters Section */}
+      {showFilters && (
+        <Paper sx={{ mb: 3, p: 2 }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={2}>
+              <TextField
+                fullWidth
+                size="small"
+                label="Search"
+                placeholder="Name, email, phone..."
+                value={filters.search}
+                onChange={(e) => handleFilterChange('search', e.target.value)}
+              />
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Subscription</InputLabel>
+                <Select
+                  value={filters.subscriptionStatus}
+                  label="Subscription"
+                  onChange={(e) => handleFilterChange('subscriptionStatus', e.target.value)}
+                >
+                  <MenuItem value="">All</MenuItem>
+                  <MenuItem value="subscribed">Subscribed</MenuItem>
+                  <MenuItem value="unsubscribed">Unsubscribed</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Email Status</InputLabel>
+                <Select
+                  value={filters.emailStatus}
+                  label="Email Status"
+                  onChange={(e) => handleFilterChange('emailStatus', e.target.value)}
+                >
+                  <MenuItem value="">All</MenuItem>
+                  <MenuItem value="subscribed">Subscribed</MenuItem>
+                  <MenuItem value="unsubscribed">Unsubscribed</MenuItem>
+                  <MenuItem value="pending">Pending</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <FormControl fullWidth size="small">
+                <InputLabel>SMS Status</InputLabel>
+                <Select
+                  value={filters.smsStatus}
+                  label="SMS Status"
+                  onChange={(e) => handleFilterChange('smsStatus', e.target.value)}
+                >
+                  <MenuItem value="">All</MenuItem>
+                  <MenuItem value="subscribed">Subscribed</MenuItem>
+                  <MenuItem value="unsubscribed">Unsubscribed</MenuItem>
+                  <MenuItem value="pending">Pending</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Source</InputLabel>
+                <Select
+                  value={filters.source}
+                  label="Source"
+                  onChange={(e) => handleFilterChange('source', e.target.value)}
+                >
+                  <MenuItem value="">All</MenuItem>
+                  {availableSources.map((source) => (
+                    <MenuItem key={source} value={source}>
+                      {source}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={2}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Labels</InputLabel>
+                <Select
+                  value={filters.labels}
+                  label="Labels"
+                  onChange={(e) => handleFilterChange('labels', e.target.value)}
+                >
+                  <MenuItem value="">All</MenuItem>
+                  {availableLabels.map((label) => (
+                    <MenuItem key={label} value={label}>
+                      {label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+
+            <Grid item xs={12} md={11}>
+              <Box display="flex" gap={2}>
+                <TextField
+                  size="small"
+                  label="Date From"
+                  type="date"
+                  value={filters.dateFrom}
+                  onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                />
+                <TextField
+                  size="small"
+                  label="Date To"
+                  type="date"
+                  value={filters.dateTo}
+                  onChange={(e) => handleFilterChange('dateTo', e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={1}>
+              <Button
+                fullWidth
+                variant="outlined"
+                size="small"
+                onClick={clearFilters}
+              >
+                Clear
+              </Button>
+            </Grid>
+          </Grid>
+        </Paper>
+      )}
 
       {/* Pagination Controls */}
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
@@ -528,31 +528,28 @@ const Customers = () => {
       <Paper>
         <TableContainer>
           <Table>
-                         <TableHead>
-               <TableRow>
-                 <TableCell>Customer</TableCell>
-                 <TableCell>Contact</TableCell>
-                 <TableCell>Address</TableCell>
-                 <TableCell>Position</TableCell>
-                 <TableCell>Labels</TableCell>
-                 <TableCell>Subscription</TableCell>
-                 <TableCell>Source</TableCell>
-                 <TableCell>Joined</TableCell>
-                 <TableCell align="center">Actions</TableCell>
-               </TableRow>
-             </TableHead>
+            <TableHead>
+              <TableRow>
+                <TableCell>Customer</TableCell>
+                <TableCell>Contact</TableCell>
+                <TableCell>Address</TableCell>
+                <TableCell>Subscription</TableCell>
+                <TableCell>Joined</TableCell>
+                <TableCell align="center">Actions</TableCell>
+              </TableRow>
+            </TableHead>
             <TableBody>
               {customers.map((customer) => (
                 <TableRow key={customer._id}>
                   <TableCell>
                     <Box display="flex" alignItems="center">
                       <Avatar sx={{ mr: 2, bgcolor: theme.palette.primary.main }}>
-                        {customer.firstName ? customer.firstName.charAt(0).toUpperCase() : 
-                         customer.email.charAt(0).toUpperCase()}
+                        {customer.firstName ? customer.firstName.charAt(0).toUpperCase() :
+                          customer.email.charAt(0).toUpperCase()}
                       </Avatar>
                       <Box>
                         <Typography variant="body1" fontWeight={500}>
-                          {customer.firstName && customer.lastName 
+                          {customer.firstName && customer.lastName
                             ? `${customer.firstName} ${customer.lastName}`
                             : customer.firstName || customer.lastName || 'N/A'
                           }
@@ -571,73 +568,33 @@ const Customers = () => {
                       </Box>
                     )}
                   </TableCell>
-                                     <TableCell>
-                     {customer.address1Street && (
-                       <Box display="flex" alignItems="center">
-                         <LocationIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                         <Typography variant="body2" noWrap sx={{ maxWidth: 150 }}>
-                           {customer.address1Street}
-                         </Typography>
-                       </Box>
-                     )}
-                   </TableCell>
-                   <TableCell>
-                     <Typography variant="body2">
-                       {customer.position || 'N/A'}
-                     </Typography>
-                   </TableCell>
-                   <TableCell>
-                     <Box display="flex" flexWrap="wrap" gap={0.5}>
-                       {customer.labels && customer.labels.length > 0 ? (
-                         customer.labels.slice(0, 2).map((label, index) => (
-                           <Chip
-                             key={index}
-                             label={label}
-                             size="small"
-                             variant="outlined"
-                           />
-                         ))
-                       ) : (
-                         <Typography variant="body2" color="textSecondary">No labels</Typography>
-                       )}
-                       {customer.labels && customer.labels.length > 2 && (
-                         <Chip
-                           label={`+${customer.labels.length - 2}`}
-                           size="small"
-                           variant="outlined"
-                         />
-                       )}
-                     </Box>
-                   </TableCell>
-                   <TableCell>
-                     <Box>
-                       <Chip
-                         label={customer.isSubscribed ? 'Subscribed' : 'Unsubscribed'}
-                         color={customer.isSubscribed ? 'success' : 'default'}
-                         size="small"
-                         onClick={() => handleToggleSubscription(customer._id)}
-                         sx={{ cursor: 'pointer', mb: 0.5 }}
-                       />
-                       <Typography variant="caption" display="block" color="textSecondary">
-                         Email: {customer.emailSubscriberStatus || 'N/A'}
-                       </Typography>
-                       <Typography variant="caption" display="block" color="textSecondary">
-                         SMS: {customer.smsSubscriberStatus || 'N/A'}
-                       </Typography>
-                     </Box>
-                   </TableCell>
-                   <TableCell>
-                     <Chip
-                       label={customer.source || 'website'}
-                       size="small"
-                       variant="outlined"
-                     />
-                   </TableCell>
-                   <TableCell>
-                     <Typography variant="body2">
-                       {formatDate(customer.createdAt)}
-                     </Typography>
-                   </TableCell>
+                  <TableCell>
+                    {customer.address1Street && (
+                      <Box display="flex" alignItems="center">
+                        <LocationIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                        <Typography variant="body2" noWrap sx={{ maxWidth: 150 }}>
+                          {customer.address1Street}
+                        </Typography>
+                      </Box>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Box>
+                      <Chip
+                        label={customer.isSubscribed ? 'Subscribed' : 'Unsubscribed'}
+                        color={customer.isSubscribed ? 'success' : 'default'}
+                        size="small"
+                        onClick={() => handleToggleSubscription(customer._id)}
+                        sx={{ cursor: 'pointer', mb: 0.5 }}
+                      />
+                    </Box>
+                  </TableCell>
+
+                  <TableCell>
+                    <Typography variant="body2">
+                      {formatDate(customer.createdAt)}
+                    </Typography>
+                  </TableCell>
                   <TableCell align="center">
                     <Box display="flex" gap={1} justifyContent="center">
                       <Tooltip title="Edit Customer">
@@ -693,7 +650,7 @@ const Customers = () => {
                 {formErrors.submit}
               </Alert>
             )}
-            
+
             {/* Basic Information */}
             <Accordion defaultExpanded>
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -875,24 +832,24 @@ const Customers = () => {
                       </Select>
                     </FormControl>
                   </Grid>
-                                     <Grid item xs={12} md={6}>
-                     <FormControl fullWidth>
-                       <InputLabel>Source</InputLabel>
-                       <Select
-                         value={formData.source}
-                         label="Source"
-                         onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                       >
-                         <MenuItem value="website">Website</MenuItem>
-                         <MenuItem value="csv_import">CSV Import</MenuItem>
-                         {availableSources.filter(source => !['website', 'csv_import'].includes(source)).map((source) => (
-                           <MenuItem key={source} value={source}>
-                             {source}
-                           </MenuItem>
-                         ))}
-                       </Select>
-                     </FormControl>
-                   </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Source</InputLabel>
+                      <Select
+                        value={formData.source}
+                        label="Source"
+                        onChange={(e) => setFormData({ ...formData, source: e.target.value })}
+                      >
+                        <MenuItem value="website">Website</MenuItem>
+                        <MenuItem value="csv_import">CSV Import</MenuItem>
+                        {availableSources.filter(source => !['website', 'csv_import'].includes(source)).map((source) => (
+                          <MenuItem key={source} value={source}>
+                            {source}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
                   <Grid item xs={12} md={6}>
                     <FormControlLabel
                       control={
