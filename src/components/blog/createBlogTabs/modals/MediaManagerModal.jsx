@@ -233,6 +233,12 @@ const MediaManagerModal = ({
         setUploadProgress((completedFiles / totalFiles) * 100);
 
       } catch (err) {
+        console.error('Upload error details:', {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status,
+          file: file.name
+        });
         setError(`Failed to upload ${file.name}: ${err.response?.data?.message || err.message}`);
       }
     }

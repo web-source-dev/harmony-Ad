@@ -1454,33 +1454,6 @@ const ContentTab = ({
     // Reset dropped image
     setDroppedImage(null);
   }, [editor]);
-
-  // Handle featured image upload
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert('Image size should be less than 5MB');
-        return;
-      }
-      setImage(file);
-      setPreview(URL.createObjectURL(file));
-    }
-  };
-
-  // Handle blog video upload
-  const handleVideoChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 100 * 1024 * 1024) {
-        alert('Video size should be less than 100MB');
-        return;
-      }
-      setBlogVideo(file);
-      setVideoPreview(URL.createObjectURL(file));
-    }
-  };
-
   // Handle media manager selection for featured image
   const handleMediaManagerSelect = (selectedMedia) => {
     if (selectedMedia) {
@@ -2849,38 +2822,6 @@ const ContentTab = ({
           {preview ? 'Change Image' : 'Upload Image'}
         </Button>
         
-        <Button
-          variant="outlined"
-          startIcon={<PhotoCamera />}
-          component="label"
-          sx={{
-            borderRadius: '10px',
-            px: 3,
-            py: 1.2,
-            textTransform: 'none',
-            fontWeight: 500,
-            borderColor: theme.palette.primary.main,
-            color: theme.palette.primary.main,
-            '&:hover': {
-              borderColor: theme.palette.primary.dark,
-              backgroundColor: theme.palette.primary.light,
-            }
-          }}
-        >
-          Upload New Image
-          <input
-            type="file"
-            hidden
-            accept="image/*"
-            onChange={handleImageChange}
-          />
-        </Button>
-        
-        {!preview && (
-          <Typography variant="caption" color="text.secondary">
-            Recommended size: 1200 x 630 pixels (Max: 5MB)
-          </Typography>
-        )}
       </Box>
 
       {preview && (
@@ -3002,34 +2943,7 @@ const ContentTab = ({
         Blog Video
       </Typography>
       
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-        <Button
-          variant="contained"
-          startIcon={<VideoLibrary />}
-          component="label"
-          sx={{
-            borderRadius: '10px',
-            px: 3,
-            py: 1.2,
-            textTransform: 'none',
-            fontWeight: 500,
-            backgroundColor: theme.palette.secondary.main,
-            color: '#fff',
-            boxShadow: theme.shadows[2],
-            '&:hover': {
-              backgroundColor: theme.palette.secondary.dark,
-            }
-          }}
-        >
-          {videoPreview ? 'Change Video' : 'Upload New Video'}
-          <input
-            type="file"
-            hidden
-            accept="video/*"
-            onChange={handleVideoChange}
-          />
-        </Button>
-        
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>        
         <Button
           variant="outlined"
           startIcon={<Storage />}
@@ -3050,12 +2964,6 @@ const ContentTab = ({
         >
           Select from Media Library
         </Button>
-        
-        {!videoPreview && (
-          <Typography variant="caption" color="text.secondary">
-            Recommended format: MP4, WebM (Max: 100MB)
-          </Typography>
-        )}
       </Box>
 
       {videoPreview && (
