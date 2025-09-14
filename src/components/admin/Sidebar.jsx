@@ -26,8 +26,10 @@ import {
   PersonAdd as UserIcon,
   Analytics as AnalyticsIcon,
   VideoLibrary as VideoIcon,
+  Logout as LogoutIcon,
 } from '@mui/icons-material';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
 
 const menuItems = [
   { 
@@ -65,7 +67,14 @@ const menuItems = [
 const Sidebar = () => {
   const theme = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth();
   const drawerWidth = 240;
+
+  const handleLogout = () => {
+    logout();
+    navigate('/admin/login');
+  };
 
   return (
     <Drawer
@@ -237,6 +246,32 @@ const Sidebar = () => {
           </ListItem>
         ))}
       </List>
+
+      <Box sx={{ mt: 'auto', p: 2 }}>
+        <ListItem
+          button
+          onClick={handleLogout}
+          sx={{
+            borderRadius: 1,
+            '&:hover': {
+              bgcolor: `${theme.palette.error.main}15`,
+            },
+          }}
+        >
+          <ListItemIcon>
+            <LogoutIcon color="error" />
+          </ListItemIcon>
+          <ListItemText
+            primary="Logout"
+            sx={{
+              '& .MuiTypography-root': {
+                color: 'error.main',
+                fontWeight: 500,
+              },
+            }}
+          />
+        </ListItem>
+      </Box>
     </Drawer>
   );
 };
