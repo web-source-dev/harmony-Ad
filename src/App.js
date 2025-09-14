@@ -24,7 +24,7 @@ const App = () => {
           <Routes>
             <Route path="/admin/login" element={<Login />} />
             <Route
-              path="/*"
+              path="/"
               element={
                 <ProtectedRoute>
                   <AdminDashboard />

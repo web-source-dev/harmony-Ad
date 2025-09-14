@@ -25,10 +25,14 @@ const Login = () => {
 
     const isAuthenticated = login(password);
     if (isAuthenticated) {
+      // Log successful login
+      console.log('Login successful, redirecting to:', location.state?.from?.pathname || '/');
+      
       // Redirect to the page they were trying to access, or to dashboard
       const from = location.state?.from?.pathname || '/';
       navigate(from, { replace: true });
     } else {
+      console.log('Login failed'); // Debug log
       setError('Invalid password');
     }
   };
