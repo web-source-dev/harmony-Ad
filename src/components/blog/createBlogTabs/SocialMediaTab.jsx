@@ -82,7 +82,8 @@ const SocialMediaTab = ({
   // Handle media manager selection for OG image
   const handleOgMediaManagerSelect = (selectedMedia) => {
     if (selectedMedia) {
-      setOgImage(null); // Clear file
+      // Store the URL as a string in the ogImage state for media manager selections
+      setOgImage(selectedMedia.url);
       setOgImagePreview(selectedMedia.url);
     }
   };
@@ -90,7 +91,8 @@ const SocialMediaTab = ({
   // Handle media manager selection for Twitter image
   const handleTwitterMediaManagerSelect = (selectedMedia) => {
     if (selectedMedia) {
-      setTwitterImage(null); // Clear file
+      // Store the URL as a string in the twitterImage state for media manager selections
+      setTwitterImage(selectedMedia.url);
       setTwitterImagePreview(selectedMedia.url);
     }
   };

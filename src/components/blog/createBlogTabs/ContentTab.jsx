@@ -1457,7 +1457,9 @@ const ContentTab = ({
   // Handle media manager selection for featured image
   const handleMediaManagerSelect = (selectedMedia) => {
     if (selectedMedia) {
-      setImage(null); // Clear file
+      // Store the URL as a string in the image state for media manager selections
+      // This will be handled differently in the submit function
+      setImage(selectedMedia.url);
       setPreview(selectedMedia.url);
       setImageAlt(selectedMedia.alt || selectedMedia.name);
     }

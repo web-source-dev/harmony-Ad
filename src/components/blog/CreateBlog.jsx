@@ -538,15 +538,15 @@ const CreateBlog = () => {
     setError('');
   
     try {
-      // First, upload social media images if they exist
+      // First, upload social media images if they exist (only for File objects)
       let ogImageUrl = null;
       let twitterImageUrl = null;
       
-      if (ogImage) {
+      if (ogImage && ogImage instanceof File) {
         ogImageUrl = await uploadSocialMediaImage(ogImage);
       }
       
-      if (twitterImage) {
+      if (twitterImage && twitterImage instanceof File) {
         twitterImageUrl = await uploadSocialMediaImage(twitterImage);
       }
       
@@ -564,7 +564,13 @@ const CreateBlog = () => {
       // Content
       formData.append('content', content);
       if (image) {
-        formData.append('image', image);
+        // Check if image is a File object (file upload) or a string (media manager URL)
+        if (image instanceof File) {
+          formData.append('image', image);
+        } else if (typeof image === 'string' && image.trim()) {
+          // For media manager selections, send the URL as a regular field
+          formData.append('imageUrl', image);
+        }
       }
       if (imageAlt) {
         formData.append('imageAlt', imageAlt);
@@ -588,20 +594,30 @@ const CreateBlog = () => {
       // Social Media
       formData.append('ogTitle', ogTitle || seoTitle || title); // Use SEO title or main title as fallback
       formData.append('ogDescription', ogDescription || seoDescription || description); // Use SEO description or main description as fallback
-      if (ogImageUrl) {
-        formData.append('ogImage', ogImageUrl);
-      } else if (ogImagePreview && ogImagePreview.startsWith('http')) {
-        // If we already have a URL from previously uploaded image
-        formData.append('ogImage', ogImagePreview);
+      if (ogImage) {
+        // Check if ogImage is a File object (file upload) or a string (media manager URL)
+        if (ogImage instanceof File) {
+          if (ogImageUrl) {
+            formData.append('ogImage', ogImageUrl);
+          }
+        } else if (typeof ogImage === 'string' && ogImage.trim()) {
+          // For media manager selections, send the URL directly
+          formData.append('ogImage', ogImage);
+        }
       }
       
       formData.append('twitterTitle', twitterTitle || ogTitle || seoTitle || title); // Chain of fallbacks
       formData.append('twitterDescription', twitterDescription || ogDescription || seoDescription || description); // Chain of fallbacks
-      if (twitterImageUrl) {
-        formData.append('twitterImage', twitterImageUrl);
-      } else if (twitterImagePreview && twitterImagePreview.startsWith('http')) {
-        // If we already have a URL from previously uploaded image
-        formData.append('twitterImage', twitterImagePreview);
+      if (twitterImage) {
+        // Check if twitterImage is a File object (file upload) or a string (media manager URL)
+        if (twitterImage instanceof File) {
+          if (twitterImageUrl) {
+            formData.append('twitterImage', twitterImageUrl);
+          }
+        } else if (typeof twitterImage === 'string' && twitterImage.trim()) {
+          // For media manager selections, send the URL directly
+          formData.append('twitterImage', twitterImage);
+        }
       }
       
       // Settings

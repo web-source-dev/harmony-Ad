@@ -52,16 +52,34 @@ const SettingsTab = ({
     }
   }, [status]);
   
-  // Format date for the datetime-local input
+  // Format date for the datetime-local input (preserve local timezone)
   const formatDateForInput = (date) => {
     if (!date) return '';
     const d = new Date(date);
-    return d.toISOString().slice(0, 16);
+    // Get local timezone offset in minutes
+    const timezoneOffset = d.getTimezoneOffset();
+    // Adjust for timezone offset to get local time
+    const localDate = new Date(d.getTime() - (timezoneOffset * 60000));
+    return localDate.toISOString().slice(0, 16);
   };
   
-  // Handle schedule date change
+  // Handle schedule date change (preserve local timezone)
   const handleScheduleChange = (e) => {
-    setScheduledFor(e.target.value ? new Date(e.target.value) : null);
+    if (!e.target.value) {
+      setScheduledFor(null);
+      return;
+    }
+    
+    // Create date from the datetime-local input value
+    // The input value is in local time, so we need to handle it properly
+    const inputValue = e.target.value;
+    const [datePart, timePart] = inputValue.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hours, minutes] = timePart.split(':').map(Number);
+    
+    // Create a new Date object in local timezone
+    const localDate = new Date(year, month - 1, day, hours, minutes);
+    setScheduledFor(localDate);
   };
 
   // Handle schedule checkbox change
