@@ -2,7 +2,9 @@ import axios from "axios";
 
 const API = axios.create({
   baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000",
-  timeout: 30000, // 30 second timeout
+  timeout: 0, // 0 means no timeout - allow infinite time for large uploads
+  maxContentLength: Infinity, // Allow infinite content length
+  maxBodyLength: Infinity, // Allow infinite body length
 });
 
 // Request interceptor

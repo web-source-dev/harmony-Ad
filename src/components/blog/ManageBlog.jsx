@@ -29,7 +29,10 @@ import {
   CircularProgress,
   Card,
   Skeleton,
-  Switch
+  Switch,
+  Tabs,
+  Tab,
+  Badge
 } from '@mui/material';
 import { Edit, Delete, Add, Search, Visibility, FilterList, Sort, Article } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -48,16 +51,31 @@ const ManageBlog = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentTab, setCurrentTab] = useState('all');
+
+  const tabs = [
+    { value: 'all', label: 'All', color: 'default' },
+    { value: 'published', label: 'Published', color: 'success' },
+    { value: 'scheduled', label: 'Scheduled', color: 'warning' },
+    { value: 'draft', label: 'Draft', color: 'default' },
+    { value: 'archived', label: 'Archived', color: 'error' }
+  ];
 
   useEffect(() => {
     fetchBlogs();
   }, []);
 
   useEffect(() => {
-    if (searchTerm.trim() === '') {
-      setFilteredBlogs(blogs);
-    } else {
-      const filtered = blogs.filter(blog =>
+    let filtered = [...blogs];
+
+    // First filter by tab
+    if (currentTab !== 'all') {
+      filtered = filtered.filter(blog => blog.status === currentTab);
+    }
+
+    // Then filter by search term
+    if (searchTerm.trim() !== '') {
+      filtered = filtered.filter(blog =>
         blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (blog.description && blog.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
         blog.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -65,9 +83,11 @@ const ManageBlog = () => {
         (blog.writer?.name && blog.writer.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (blog.writer?.email && blog.writer.email.toLowerCase().includes(searchTerm.toLowerCase()))
       );
-      setFilteredBlogs(filtered);
     }
-  }, [searchTerm, blogs]);
+
+    setFilteredBlogs(filtered);
+    setPage(0); // Reset to first page when filters change
+  }, [searchTerm, blogs, currentTab]);
 
   const fetchBlogs = async () => {
     setLoading(true);
@@ -280,38 +300,84 @@ const ManageBlog = () => {
             </Alert>
           )}
           
-          <Box 
-            sx={{ 
-              mb: 3, 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: 2
-            }}
-          >
-            <TextField
-              placeholder="Search by title, description, status, category, writer name, or email..."
-              variant="outlined"
-              size="small"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search color="action" />
-                  </InputAdornment>
-                ),
-                sx: { borderRadius: '10px' }
-              }}
+          <Box sx={{ mb: 3 }}>
+            {/* Tabs */}
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+              <Tabs 
+                value={currentTab}
+                onChange={(e, newValue) => setCurrentTab(newValue)}
+                variant="scrollable"
+                scrollButtons="auto"
+                sx={{
+                  '& .MuiTab-root': {
+                    minHeight: 48,
+                    textTransform: 'none',
+                    fontSize: '0.95rem',
+                    fontWeight: 500,
+                  }
+                }}
+              >
+                {tabs.map((tab) => (
+                  <Tab
+                    key={tab.value}
+                    value={tab.value}
+                    label={
+                      <Badge
+                        badgeContent={
+                          tab.value === 'all'
+                            ? blogs.length
+                            : blogs.filter(blog => blog.status === tab.value).length
+                        }
+                        color={tab.color}
+                        sx={{
+                          '& .MuiBadge-badge': {
+                            fontSize: '0.75rem',
+                            height: '20px',
+                            minWidth: '20px',
+                          }
+                        }}
+                      >
+                        <Box sx={{ pr: 1 }}>{tab.label}</Box>
+                      </Badge>
+                    }
+                  />
+                ))}
+              </Tabs>
+            </Box>
+
+            {/* Search Field */}
+            <Box 
               sx={{ 
-                width: { xs: '100%', sm: '320px' },
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '10px',
-                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
-                }
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 2
               }}
-            />
+            >
+              <TextField
+                placeholder="Search by title, description, status, category, writer name, or email..."
+                variant="outlined"
+                size="small"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search color="action" />
+                    </InputAdornment>
+                  ),
+                  sx: { borderRadius: '10px' }
+                }}
+                sx={{ 
+                  width: { xs: '100%', sm: '320px' },
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '10px',
+                    bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+                  }
+                }}
+              />
+            </Box>
           </Box>
         
           <Paper

@@ -45,6 +45,12 @@ import {
   LocationOn as LocationIcon,
   FilterList as FilterIcon,
   ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
+  Person as PersonIcon,
+  Work as WorkIcon,
+  Label as LabelIcon,
+  CalendarToday as CalendarIcon,
+  Business as BusinessIcon,
 } from '@mui/icons-material';
 import API from '../../BackendAPi/ApiProvider';
 
@@ -107,6 +113,7 @@ const Customers = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [availableSources, setAvailableSources] = useState([]);
   const [availableLabels, setAvailableLabels] = useState([]);
+  const [expandedRows, setExpandedRows] = useState(new Set());
   const theme = useTheme();
 
   useEffect(() => {
@@ -332,6 +339,16 @@ const Customers = () => {
     setPage(1);
   };
 
+  const toggleRowExpansion = (customerId) => {
+    const newExpandedRows = new Set(expandedRows);
+    if (newExpandedRows.has(customerId)) {
+      newExpandedRows.delete(customerId);
+    } else {
+      newExpandedRows.add(customerId);
+    }
+    setExpandedRows(newExpandedRows);
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -350,6 +367,20 @@ const Customers = () => {
 
   return (
     <Box>
+      <style>
+        {`
+          @keyframes slideDown {
+            from {
+              opacity: 0;
+              transform: translateY(-10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}
+      </style>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4">Customers</Typography>
         <Box display="flex" gap={2}>
@@ -525,100 +556,364 @@ const Customers = () => {
         </Alert>
       )}
 
-      <Paper>
+      <Paper sx={{ overflow: 'hidden' }}>
         <TableContainer>
           <Table>
             <TableHead>
-              <TableRow>
+              <TableRow sx={{ backgroundColor: theme.palette.grey[50] }}>
+                <TableCell width="50px"></TableCell>
                 <TableCell>Customer</TableCell>
                 <TableCell>Contact</TableCell>
-                <TableCell>Address</TableCell>
-                <TableCell>Subscription</TableCell>
+                <TableCell>Status</TableCell>
                 <TableCell>Joined</TableCell>
                 <TableCell align="center">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {customers.map((customer) => (
-                <TableRow key={customer._id}>
-                  <TableCell>
-                    <Box display="flex" alignItems="center">
-                      <Avatar sx={{ mr: 2, bgcolor: theme.palette.primary.main }}>
-                        {customer.firstName ? customer.firstName.charAt(0).toUpperCase() :
-                          customer.email.charAt(0).toUpperCase()}
-                      </Avatar>
-                      <Box>
-                        <Typography variant="body1" fontWeight={500}>
-                          {customer.firstName && customer.lastName
-                            ? `${customer.firstName} ${customer.lastName}`
-                            : customer.firstName || customer.lastName || 'N/A'
-                          }
-                        </Typography>
-                        <Typography variant="body2" color="textSecondary">
-                          {customer.email}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    {customer.phone && (
-                      <Box display="flex" alignItems="center" mb={0.5}>
-                        <PhoneIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                        <Typography variant="body2">{customer.phone}</Typography>
-                      </Box>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {customer.address1Street && (
-                      <Box display="flex" alignItems="center">
-                        <LocationIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
-                        <Typography variant="body2" noWrap sx={{ maxWidth: 150 }}>
-                          {customer.address1Street}
-                        </Typography>
-                      </Box>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Box>
-                      <Chip
-                        label={customer.isSubscribed ? 'Subscribed' : 'Unsubscribed'}
-                        color={customer.isSubscribed ? 'success' : 'default'}
-                        size="small"
-                        onClick={() => handleToggleSubscription(customer._id)}
-                        sx={{ cursor: 'pointer', mb: 0.5 }}
-                      />
-                    </Box>
-                  </TableCell>
+              {customers.map((customer) => {
+                const isExpanded = expandedRows.has(customer._id);
+                return (
+                  <React.Fragment key={customer._id}>
+                    {/* Main Row */}
+                    <TableRow 
+                      hover 
+                      sx={{ 
+                        cursor: 'pointer',
+                        backgroundColor: isExpanded ? theme.palette.action.hover : 'inherit',
+                        '&:hover': {
+                          backgroundColor: theme.palette.action.hover,
+                        }
+                      }}
+                      onClick={() => toggleRowExpansion(customer._id)}
+                    >
+                      <TableCell>
+                        <IconButton size="small" sx={{ color: theme.palette.primary.main }}>
+                          {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+                        </IconButton>
+                      </TableCell>
+                      <TableCell>
+                        <Box display="flex" alignItems="center">
+                          <Avatar sx={{ mr: 2, bgcolor: theme.palette.primary.main, width: 40, height: 40 }}>
+                            {customer.firstName ? customer.firstName.charAt(0).toUpperCase() :
+                              customer.email.charAt(0).toUpperCase()}
+                          </Avatar>
+                          <Box>
+                            <Typography variant="body1" fontWeight={600}>
+                              {customer.firstName && customer.lastName
+                                ? `${customer.firstName} ${customer.lastName}`
+                                : customer.firstName || customer.lastName || 'N/A'
+                              }
+                            </Typography>
+                            <Typography variant="body2" color="textSecondary">
+                              {customer.email}
+                            </Typography>
+                            {customer.position && (
+                              <Typography variant="caption" color="primary" sx={{ fontWeight: 500 }}>
+                                {customer.position}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box>
+                          {customer.phone && (
+                            <Box display="flex" alignItems="center" mb={0.5}>
+                              <PhoneIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                              <Typography variant="body2">{customer.phone}</Typography>
+                            </Box>
+                          )}
+                          {customer.phone1 && (
+                            <Box display="flex" alignItems="center" mb={0.5}>
+                              <PhoneIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                              <Typography variant="body2">{customer.phone1}</Typography>
+                            </Box>
+                          )}
+                          {customer.phone2 && (
+                            <Box display="flex" alignItems="center">
+                              <PhoneIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                              <Typography variant="body2">{customer.phone2}</Typography>
+                            </Box>
+                          )}
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box>
+                          <Chip
+                            label={customer.isSubscribed ? 'Subscribed' : 'Unsubscribed'}
+                            color={customer.isSubscribed ? 'success' : 'default'}
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleSubscription(customer._id);
+                            }}
+                            sx={{ cursor: 'pointer', mb: 0.5, display: 'block' }}
+                          />
+                          <Chip
+                            label={customer.source || 'website'}
+                            size="small"
+                            variant="outlined"
+                            color="primary"
+                            sx={{ display: 'block' }}
+                          />
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Box display="flex" alignItems="center">
+                          <CalendarIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                          <Typography variant="body2">
+                            {formatDate(customer.createdAt)}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell align="center">
+                        <Box display="flex" gap={1} justifyContent="center">
+                          <Tooltip title="Edit Customer">
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenDialog(customer);
+                              }}
+                              color="primary"
+                            >
+                              <EditIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete Customer">
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(customer._id);
+                              }}
+                              color="error"
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
 
-                  <TableCell>
-                    <Typography variant="body2">
-                      {formatDate(customer.createdAt)}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="center">
-                    <Box display="flex" gap={1} justifyContent="center">
-                      <Tooltip title="Edit Customer">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleOpenDialog(customer)}
-                          color="primary"
-                        >
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete Customer">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDelete(customer._id)}
-                          color="error"
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              ))}
+                    {/* Expanded Row */}
+                    {isExpanded && (
+                      <TableRow>
+                        <TableCell colSpan={6} sx={{ p: 0, border: 0 }}>
+                          <Box 
+                            sx={{ 
+                              p: 3, 
+                              backgroundColor: theme.palette.grey[25],
+                              borderTop: `1px solid ${theme.palette.divider}`,
+                              animation: 'slideDown 0.3s ease-out'
+                            }}
+                          >
+                            <Grid container spacing={3}>
+                              {/* Contact Information */}
+                              <Grid item xs={12} md={4}>
+                                <Paper sx={{ p: 2, height: '100%' }}>
+                                  <Box display="flex" alignItems="center" mb={2}>
+                                    <PersonIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+                                    <Typography variant="h6" fontWeight={600}>
+                                      Contact Information
+                                    </Typography>
+                                  </Box>
+                                  <Box>
+                                    <Box display="flex" alignItems="center" mb={1}>
+                                      <EmailIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                                      <Typography variant="body2">{customer.email}</Typography>
+                                    </Box>
+                                    {customer.phone && (
+                                      <Box display="flex" alignItems="center" mb={1}>
+                                        <PhoneIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                                        <Typography variant="body2">{customer.phone}</Typography>
+                                      </Box>
+                                    )}
+                                    {customer.phone1 && (
+                                      <Box display="flex" alignItems="center" mb={1}>
+                                        <PhoneIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                                        <Typography variant="body2">{customer.phone1}</Typography>
+                                      </Box>
+                                    )}
+                                    {customer.phone2 && (
+                                      <Box display="flex" alignItems="center">
+                                        <PhoneIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                                        <Typography variant="body2">{customer.phone2}</Typography>
+                                      </Box>
+                                    )}
+                                  </Box>
+                                </Paper>
+                              </Grid>
+
+                              {/* Address Information */}
+                              <Grid item xs={12} md={4}>
+                                <Paper sx={{ p: 2, height: '100%' }}>
+                                  <Box display="flex" alignItems="center" mb={2}>
+                                    <LocationIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+                                    <Typography variant="h6" fontWeight={600}>
+                                      Address Information
+                                    </Typography>
+                                  </Box>
+                                  <Box>
+                                    {customer.address1Street && (
+                                      <Box mb={2}>
+                                        <Typography variant="subtitle2" fontWeight={600} mb={1}>
+                                          Address 1
+                                        </Typography>
+                                        <Typography variant="body2" mb={0.5}>
+                                          {customer.address1Street}
+                                        </Typography>
+                                        {(customer.address1City || customer.address1State || customer.address1Zip) && (
+                                          <Typography variant="body2" color="textSecondary" mb={0.5}>
+                                            {[customer.address1City, customer.address1State, customer.address1Zip]
+                                              .filter(Boolean).join(', ')}
+                                          </Typography>
+                                        )}
+                                        {customer.address1Country && (
+                                          <Typography variant="body2" color="textSecondary">
+                                            {customer.address1Country}
+                                          </Typography>
+                                        )}
+                                      </Box>
+                                    )}
+                                    {customer.address2Street && (
+                                      <Box mb={2}>
+                                        <Typography variant="subtitle2" fontWeight={600} mb={1}>
+                                          Address 2
+                                        </Typography>
+                                        <Typography variant="body2" mb={0.5}>
+                                          {customer.address2Street}
+                                        </Typography>
+                                        {(customer.address2City || customer.address2State || customer.address2Zip) && (
+                                          <Typography variant="body2" color="textSecondary">
+                                            {[customer.address2City, customer.address2State, customer.address2Zip]
+                                              .filter(Boolean).join(', ')}
+                                          </Typography>
+                                        )}
+                                      </Box>
+                                    )}
+                                    {customer.address3Street && (
+                                      <Box>
+                                        <Typography variant="subtitle2" fontWeight={600} mb={1}>
+                                          Address 3
+                                        </Typography>
+                                        <Typography variant="body2" mb={0.5}>
+                                          {customer.address3Street}
+                                        </Typography>
+                                        {customer.address3City && (
+                                          <Typography variant="body2" color="textSecondary">
+                                            {customer.address3City}
+                                          </Typography>
+                                        )}
+                                      </Box>
+                                    )}
+                                    {!customer.address1Street && !customer.address2Street && !customer.address3Street && (
+                                      <Typography variant="body2" color="textSecondary">
+                                        No address information available
+                                      </Typography>
+                                    )}
+                                  </Box>
+                                </Paper>
+                              </Grid>
+
+                              {/* Status & Details */}
+                              <Grid item xs={12} md={4}>
+                                <Paper sx={{ p: 2, height: '100%' }}>
+                                  <Box display="flex" alignItems="center" mb={2}>
+                                    <BusinessIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+                                    <Typography variant="h6" fontWeight={600}>
+                                      Status & Details
+                                    </Typography>
+                                  </Box>
+                                  <Box>
+                                    {/* Subscription Status */}
+                                    <Box mb={2}>
+                                      <Typography variant="subtitle2" fontWeight={600} mb={1}>
+                                        Subscription Status
+                                      </Typography>
+                                      <Box display="flex" flexDirection="column" gap={0.5}>
+                                        <Chip
+                                          label={`General: ${customer.isSubscribed ? 'Subscribed' : 'Unsubscribed'}`}
+                                          color={customer.isSubscribed ? 'success' : 'default'}
+                                          size="small"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleToggleSubscription(customer._id);
+                                          }}
+                                          sx={{ cursor: 'pointer', alignSelf: 'flex-start' }}
+                                        />
+                                        <Chip
+                                          label={`Email: ${customer.emailSubscriberStatus || 'subscribed'}`}
+                                          variant="outlined"
+                                          color={customer.emailSubscriberStatus === 'subscribed' ? 'success' : 'default'}
+                                          size="small"
+                                          sx={{ alignSelf: 'flex-start' }}
+                                        />
+                                        <Chip
+                                          label={`SMS: ${customer.smsSubscriberStatus || 'subscribed'}`}
+                                          variant="outlined"
+                                          color={customer.smsSubscriberStatus === 'subscribed' ? 'success' : 'default'}
+                                          size="small"
+                                          sx={{ alignSelf: 'flex-start' }}
+                                        />
+                                      </Box>
+                                    </Box>
+
+                                    {/* Labels */}
+                                    <Box mb={2}>
+                                      <Typography variant="subtitle2" fontWeight={600} mb={1}>
+                                        Labels
+                                      </Typography>
+                                      {customer.labels && customer.labels.length > 0 ? (
+                                        <Box display="flex" flexWrap="wrap" gap={0.5}>
+                                          {customer.labels.map((label, index) => (
+                                            <Chip
+                                              key={index}
+                                              label={label}
+                                              size="small"
+                                              color="primary"
+                                              variant="outlined"
+                                            />
+                                          ))}
+                                        </Box>
+                                      ) : (
+                                        <Typography variant="body2" color="textSecondary">
+                                          No labels assigned
+                                        </Typography>
+                                      )}
+                                    </Box>
+
+                                    {/* Dates */}
+                                    <Box>
+                                      <Typography variant="subtitle2" fontWeight={600} mb={1}>
+                                        Timeline
+                                      </Typography>
+                                      <Box display="flex" alignItems="center" mb={0.5}>
+                                        <CalendarIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                                        <Typography variant="body2">
+                                          Joined: {formatDate(customer.createdAt)}
+                                        </Typography>
+                                      </Box>
+                                      {customer.updatedAt && customer.updatedAt !== customer.createdAt && (
+                                        <Box display="flex" alignItems="center">
+                                          <CalendarIcon fontSize="small" sx={{ mr: 1, color: 'text.secondary' }} />
+                                          <Typography variant="body2">
+                                            Updated: {formatDate(customer.updatedAt)}
+                                          </Typography>
+                                        </Box>
+                                      )}
+                                    </Box>
+                                  </Box>
+                                </Paper>
+                              </Grid>
+                            </Grid>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
+                );
+              })}
             </TableBody>
           </Table>
         </TableContainer>

@@ -26,15 +26,8 @@ import {
   Alert,
   Snackbar,
   Tooltip,
-  Fab,
   useTheme,
-  Divider,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
   Checkbox,
-  Badge,
   Paper,
   LinearProgress,
   CardActionArea
@@ -174,11 +167,11 @@ const MediaManagerModal = ({
 
     // Validate files
     const validFiles = files.filter(file => {
-      const isValidImage = file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024;
-      const isValidVideo = file.type.startsWith('video/') && file.size <= 100 * 1024 * 1024;
+      const isValidImage = file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024; // 5MB for images
+      const isValidVideo = file.type.startsWith('video/') && file.size <= 5 * 1024 * 1024 * 1024; // 5GB for videos
       
       if (!isValidImage && !isValidVideo) {
-        setError(`Invalid file: ${file.name}. Images must be < 5MB, videos < 100MB`);
+        setError(`Invalid file: ${file.name}. Images must be < 5MB, videos < 5GB`);
         return false;
       }
       return true;
