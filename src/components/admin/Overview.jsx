@@ -218,7 +218,7 @@ const Overview = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {recentData.blogs.map((blog) => (
+                    {recentData.blogs.slice(0, 5).map((blog) => (
                       <TableRow key={blog._id}>
                         <TableCell>
                           <Typography variant="body2" noWrap sx={{ maxWidth: 150 }}>
@@ -267,7 +267,7 @@ const Overview = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {recentData.donations.map((donation) => (
+                    {recentData.donations.slice(0, 5).map((donation) => (
                       <TableRow key={donation._id}>
                         <TableCell>
                           {donation.isAnonymous ? 'Anonymous' : donation.donorName}
@@ -303,7 +303,7 @@ const Overview = () => {
             </Typography>
             {recentData.customers && recentData.customers.length > 0 ? (
               <List dense>
-                {recentData.customers.map((customer) => (
+                {recentData.customers.slice(0, 5).map((customer) => (
                   <React.Fragment key={customer._id}>
                     <ListItem>
                       <ListItemAvatar>
