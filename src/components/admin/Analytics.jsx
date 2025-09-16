@@ -96,13 +96,14 @@ const Analytics = () => {
         API.get('api/welcome-popup'),
       ]);
 
-      const blogs = blogsResponse.data;
-      const donations = donationsResponse.data;
-      const customers = customersResponse.data;
-      const contacts = contactsResponse.data;
-      const newsletters = newslettersResponse.data;
-      const volunteers = volunteersResponse.data;
-      const welcomePopups = welcomePopupsResponse.data;
+      // Ensure we have valid data arrays
+      const blogs = Array.isArray(blogsResponse.data) ? blogsResponse.data : [];
+      const donations = Array.isArray(donationsResponse.data) ? donationsResponse.data : [];
+      const customers = Array.isArray(customersResponse.data) ? customersResponse.data : [];
+      const contacts = Array.isArray(contactsResponse.data) ? contactsResponse.data : [];
+      const newsletters = Array.isArray(newslettersResponse.data) ? newslettersResponse.data : [];
+      const volunteers = Array.isArray(volunteersResponse.data) ? volunteersResponse.data : [];
+      const welcomePopups = Array.isArray(welcomePopupsResponse.data) ? welcomePopupsResponse.data : [];
 
       // Process data for analytics
       const processedData = processAnalyticsData(
@@ -120,7 +121,25 @@ const Analytics = () => {
       setAnalyticsData(processedData);
     } catch (err) {
       console.error('Error fetching analytics data:', err);
-      setError('Failed to load analytics data. Please try again.');
+      console.error('Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        url: err.config?.url
+      });
+      
+      let errorMessage = 'Failed to load analytics data. Please try again.';
+      if (err.response?.status === 401) {
+        errorMessage = 'Authentication required. Please log in again.';
+      } else if (err.response?.status === 403) {
+        errorMessage = 'Access denied. You do not have permission to view analytics.';
+      } else if (err.response?.status >= 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (err.message.includes('Network Error')) {
+        errorMessage = 'Network error. Please check your connection.';
+      }
+      
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -131,22 +150,31 @@ const Analytics = () => {
     const now = new Date();
     const startDate = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000));
 
+    // Ensure all data is in array format
+    const safeBlogs = Array.isArray(blogs) ? blogs : [];
+    const safeDonations = Array.isArray(donations) ? donations : [];
+    const safeCustomers = Array.isArray(customers) ? customers : [];
+    const safeContacts = Array.isArray(contacts) ? contacts : [];
+    const safeNewsletters = Array.isArray(newsletters) ? newsletters : [];
+    const safeVolunteers = Array.isArray(volunteers) ? volunteers : [];
+    const safeWelcomePopups = Array.isArray(welcomePopups) ? welcomePopups : [];
+
     // Filter data by time range
-    const filteredBlogs = blogs.filter(blog => new Date(blog.createdAt) >= startDate);
-    const filteredDonations = donations.filter(donation => new Date(donation.submittedAt) >= startDate);
-    const filteredCustomers = customers.filter(customer => new Date(customer.createdAt) >= startDate);
-    const filteredContacts = contacts.filter(contact => new Date(contact.createdAt) >= startDate);
-    const filteredNewsletters = newsletters.filter(newsletter => new Date(newsletter.subscribedAt) >= startDate);
-    const filteredVolunteers = volunteers.filter(volunteer => new Date(volunteer.submittedAt) >= startDate);
-    const filteredWelcomePopups = welcomePopups.filter(popup => new Date(popup.submittedAt) >= startDate);
+    const filteredBlogs = safeBlogs.filter(blog => blog && blog.createdAt && new Date(blog.createdAt) >= startDate);
+    const filteredDonations = safeDonations.filter(donation => donation && donation.submittedAt && new Date(donation.submittedAt) >= startDate);
+    const filteredCustomers = safeCustomers.filter(customer => customer && customer.createdAt && new Date(customer.createdAt) >= startDate);
+    const filteredContacts = safeContacts.filter(contact => contact && contact.createdAt && new Date(contact.createdAt) >= startDate);
+    const filteredNewsletters = safeNewsletters.filter(newsletter => newsletter && newsletter.subscribedAt && new Date(newsletter.subscribedAt) >= startDate);
+    const filteredVolunteers = safeVolunteers.filter(volunteer => volunteer && volunteer.submittedAt && new Date(volunteer.submittedAt) >= startDate);
+    const filteredWelcomePopups = safeWelcomePopups.filter(popup => popup && popup.submittedAt && new Date(popup.submittedAt) >= startDate);
 
     // Calculate engagement metrics
-    const totalViews = blogs.reduce((sum, blog) => sum + (blog.views || 0), 0);
-    const totalLikes = blogs.reduce((sum, blog) => sum + (blog.likes || 0), 0);
-    const totalShares = blogs.reduce((sum, blog) => sum + (blog.shares || 0), 0);
+    const totalViews = safeBlogs.reduce((sum, blog) => sum + (blog.views || 0), 0);
+    const totalLikes = safeBlogs.reduce((sum, blog) => sum + (blog.likes || 0), 0);
+    const totalShares = safeBlogs.reduce((sum, blog) => sum + (blog.shares || 0), 0);
 
     // Top performing blogs
-    const topBlogs = blogs
+    const topBlogs = safeBlogs
       .sort((a, b) => (b.views || 0) - (a.views || 0))
       .slice(0, 10)
       .map(blog => ({
@@ -159,8 +187,8 @@ const Analytics = () => {
       }));
 
     // Top donors
-    const topDonors = donations
-      .filter(d => d.status === 'completed')
+    const topDonors = safeDonations
+      .filter(d => d && d.status === 'completed')
       .sort((a, b) => b.amount - a.amount)
       .slice(0, 10)
       .map(donation => ({
@@ -179,49 +207,49 @@ const Analytics = () => {
 
     return {
       overview: {
-        totalBlogs: blogs.length,
-        publishedBlogs: blogs.filter(b => b.status === 'published').length,
-        draftBlogs: blogs.filter(b => b.status === 'draft').length,
-        scheduledBlogs: blogs.filter(b => b.status === 'scheduled').length,
-        totalDonations: donations.length,
-        completedDonations: donations.filter(d => d.status === 'completed').length,
-        totalAmount: donations.filter(d => d.status === 'completed').reduce((sum, d) => sum + d.amount, 0),
-        totalCustomers: customers.length,
-        subscribedCustomers: customers.filter(c => c.isSubscribed).length,
-        totalContacts: contacts.length,
-        totalNewsletters: newsletters.length,
-        totalVolunteers: volunteers.length,
-        totalWelcomePopups: welcomePopups.length,
+        totalBlogs: safeBlogs.length,
+        publishedBlogs: safeBlogs.filter(b => b && b.status === 'published').length,
+        draftBlogs: safeBlogs.filter(b => b && b.status === 'draft').length,
+        scheduledBlogs: safeBlogs.filter(b => b && b.status === 'scheduled').length,
+        totalDonations: safeDonations.length,
+        completedDonations: safeDonations.filter(d => d && d.status === 'completed').length,
+        totalAmount: safeDonations.filter(d => d && d.status === 'completed').reduce((sum, d) => sum + (d.amount || 0), 0),
+        totalCustomers: safeCustomers.length,
+        subscribedCustomers: safeCustomers.filter(c => c && c.isSubscribed).length,
+        totalContacts: safeContacts.length,
+        totalNewsletters: safeNewsletters.length,
+        totalVolunteers: safeVolunteers.length,
+        totalWelcomePopups: safeWelcomePopups.length,
         totalViews,
         totalLikes,
         totalShares,
-        averageViewsPerBlog: blogs.length > 0 ? Math.round(totalViews / blogs.length) : 0,
-        averageLikesPerBlog: blogs.length > 0 ? Math.round(totalLikes / blogs.length) : 0,
-        averageSharesPerBlog: blogs.length > 0 ? Math.round(totalShares / blogs.length) : 0,
+        averageViewsPerBlog: safeBlogs.length > 0 ? Math.round(totalViews / safeBlogs.length) : 0,
+        averageLikesPerBlog: safeBlogs.length > 0 ? Math.round(totalLikes / safeBlogs.length) : 0,
+        averageSharesPerBlog: safeBlogs.length > 0 ? Math.round(totalShares / safeBlogs.length) : 0,
       },
       blogStats: {
         blogsCreatedThisPeriod: filteredBlogs.length,
-        blogsPublishedThisPeriod: filteredBlogs.filter(b => b.status === 'published').length,
+        blogsPublishedThisPeriod: filteredBlogs.filter(b => b && b.status === 'published').length,
         averageViewsThisPeriod: filteredBlogs.length > 0 ? Math.round(filteredBlogs.reduce((sum, blog) => sum + (blog.views || 0), 0) / filteredBlogs.length) : 0,
       },
       donationStats: {
         donationsThisPeriod: filteredDonations.length,
-        amountThisPeriod: filteredDonations.filter(d => d.status === 'completed').reduce((sum, d) => sum + d.amount, 0),
-        averageDonation: donations.filter(d => d.status === 'completed').length > 0 ? Math.round(donations.filter(d => d.status === 'completed').reduce((sum, d) => sum + d.amount, 0) / donations.filter(d => d.status === 'completed').length) : 0,
+        amountThisPeriod: filteredDonations.filter(d => d && d.status === 'completed').reduce((sum, d) => sum + (d.amount || 0), 0),
+        averageDonation: safeDonations.filter(d => d && d.status === 'completed').length > 0 ? Math.round(safeDonations.filter(d => d && d.status === 'completed').reduce((sum, d) => sum + (d.amount || 0), 0) / safeDonations.filter(d => d && d.status === 'completed').length) : 0,
       },
       customerStats: {
         newCustomersThisPeriod: filteredCustomers.length,
-        newSubscribersThisPeriod: filteredCustomers.filter(c => c.isSubscribed).length,
-        totalSubscribers: customers.filter(c => c.isSubscribed).length,
-        subscriptionRate: customers.length > 0 ? Math.round((customers.filter(c => c.isSubscribed).length / customers.length) * 100) : 0,
+        newSubscribersThisPeriod: filteredCustomers.filter(c => c && c.isSubscribed).length,
+        totalSubscribers: safeCustomers.filter(c => c && c.isSubscribed).length,
+        subscriptionRate: safeCustomers.length > 0 ? Math.round((safeCustomers.filter(c => c && c.isSubscribed).length / safeCustomers.length) * 100) : 0,
       },
       engagementStats: {
         totalViews,
         totalLikes,
         totalShares,
-        averageViewsPerBlog: blogs.length > 0 ? Math.round(totalViews / blogs.length) : 0,
-        averageLikesPerBlog: blogs.length > 0 ? Math.round(totalLikes / blogs.length) : 0,
-        averageSharesPerBlog: blogs.length > 0 ? Math.round(totalShares / blogs.length) : 0,
+        averageViewsPerBlog: safeBlogs.length > 0 ? Math.round(totalViews / safeBlogs.length) : 0,
+        averageLikesPerBlog: safeBlogs.length > 0 ? Math.round(totalLikes / safeBlogs.length) : 0,
+        averageSharesPerBlog: safeBlogs.length > 0 ? Math.round(totalShares / safeBlogs.length) : 0,
       },
       topBlogs,
       topDonors,
