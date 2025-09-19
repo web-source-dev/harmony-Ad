@@ -15,6 +15,7 @@ import {
   PersonAdd,
   Save,
   Clear,
+  Search,
 } from '@mui/icons-material';
 import API from '../../BackendAPi/ApiProvider';
 
@@ -136,7 +137,7 @@ const CreateCustomer = () => {
     <Box>
       {/* Header */}
       <Box display="flex" alignItems="center" gap={2} mb={3}>
-        <PersonAdd color="primary" sx={{ fontSize: 32 }} />
+        <PersonAdd color=" #000" sx={{ fontSize: 32 }} />
         <Typography variant="h4" fontWeight="bold">
           Create New Customer
         </Typography>
@@ -144,10 +145,13 @@ const CreateCustomer = () => {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={12}>
-          <Card>
+          <Card sx={{ borderRadius: '10px',border: '1px solid #000' }}>
             <CardHeader
               title="Customer Information"
               subheader="Fill in the customer details below"
+              sx={{
+                borderBottom: '1px solid #000',
+              }}
             />
             <CardContent>
               <form onSubmit={handleSubmit}>
@@ -161,6 +165,11 @@ const CreateCustomer = () => {
                       error={!!fieldErrors.firstName}
                       helperText={fieldErrors.firstName}
                       disabled={isLoading}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '10px',
+                        }
+                      }}
                     />
                   </Grid>
                   
@@ -173,6 +182,11 @@ const CreateCustomer = () => {
                       error={!!fieldErrors.lastName}
                       helperText={fieldErrors.lastName}
                       disabled={isLoading}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '10px',
+                        }
+                      }}
                     />
                   </Grid>
                   
@@ -186,6 +200,11 @@ const CreateCustomer = () => {
                       error={!!fieldErrors.email}
                       helperText={fieldErrors.email}
                       disabled={isLoading}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '10px',
+                        }
+                      }}
                     />
                   </Grid>
                   
@@ -198,6 +217,11 @@ const CreateCustomer = () => {
                       error={!!fieldErrors.phone}
                       helperText={fieldErrors.phone}
                       disabled={isLoading}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '10px',
+                        }
+                      }}
                     />
                   </Grid>
                 </Grid>
@@ -224,6 +248,21 @@ const CreateCustomer = () => {
                     startIcon={isLoading ? <CircularProgress size={20} /> : <Save />}
                     disabled={isLoading}
                     size="large"
+                    sx={{
+                      borderRadius: '10px',
+                      px: 3,
+                      py: 1.2,
+                      textTransform: 'none',
+                      fontWeight: 500,
+                      background: "#000",
+                      color: "#fff",
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        background: "#000",
+                        color: "#fff",
+                        transform: 'translateY(-2px)',
+                      }
+                    }}
                   >
                     {isLoading ? 'Creating...' : 'Create Customer'}
                   </Button>
@@ -233,6 +272,20 @@ const CreateCustomer = () => {
                     variant="outlined"
                     startIcon={<Clear />}
                     onClick={handleClear}
+                    sx={{
+                      borderRadius: '10px',
+                      px: 3,
+                      py: 1.2,
+                      textTransform: 'none',
+                      fontWeight: 500,
+                      borderColor: "#000",
+                      color: "#000",
+                      transition: 'all 0.3s ease',
+                      '&:hover': {
+                        backgroundColor: '#000',
+                        color: '#fff',
+                      }
+                    }}
                     disabled={isLoading}
                     size="large"
                   >
