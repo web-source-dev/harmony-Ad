@@ -92,7 +92,7 @@ const CreateCustomer = () => {
       
       const response = await API.post('/api/admin/customers', customerData);
       
-      setSuccess(`Customer "${response.data.firstName} ${response.data.lastName}" created successfully!`);
+      setSuccess(`Contact "${response.data.firstName} ${response.data.lastName}" created successfully!`);
       
       // Reset form
       setFormData({
@@ -109,8 +109,8 @@ const CreateCustomer = () => {
       });
       
     } catch (err) {
-      console.error('Error creating customer:', err);
-      setError(err.response?.data?.message || 'Failed to create customer. Please try again.');
+      console.error('Error creating contact:', err);
+      setError(err.response?.data?.message || 'Failed to create contact. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -139,7 +139,7 @@ const CreateCustomer = () => {
       <Box display="flex" alignItems="center" gap={2} mb={3}>
         <PersonAdd color=" #000" sx={{ fontSize: 32 }} />
         <Typography variant="h4" fontWeight="bold">
-          Create New Customer
+          Create New Contact
         </Typography>
       </Box>
 
@@ -147,8 +147,8 @@ const CreateCustomer = () => {
         <Grid item xs={12} md={12}>
           <Card sx={{ borderRadius: '10px',border: '1px solid #000' }}>
             <CardHeader
-              title="Customer Information"
-              subheader="Fill in the customer details below"
+              title="Form Submission"
+              subheader="Fill in the form details below"
               sx={{
                 borderBottom: '1px solid #000',
               }}
@@ -264,7 +264,7 @@ const CreateCustomer = () => {
                       }
                     }}
                   >
-                    {isLoading ? 'Creating...' : 'Create Customer'}
+                    {isLoading ? 'Creating...' : 'Create Contact'}
                   </Button>
                   
                   <Button

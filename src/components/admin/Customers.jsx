@@ -290,13 +290,13 @@ const Customers = () => {
   };
 
   const handleDelete = async (customerId) => {
-    if (!window.confirm('Are you sure you want to delete this customer?')) return;
+    if (!window.confirm('Are you sure you want to delete this contact?')) return;
 
     try {
       await API.delete(`/api/admin/customers/${customerId}`);
       fetchCustomers();
     } catch (err) {
-      setError('Failed to delete customer');
+      setError('Failed to delete contact');
       console.error('Delete customer error:', err);
     }
   };
@@ -382,7 +382,7 @@ const Customers = () => {
         `}
       </style>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">Customers</Typography>
+        <Typography variant="h4">Contacts</Typography>
         <Box display="flex" gap={2}>
           <Button
             variant="outlined"
@@ -396,7 +396,7 @@ const Customers = () => {
             startIcon={<AddIcon />}
             onClick={() => handleOpenDialog()}
           >
-            Add Customer
+            Add Contact
           </Button>
         </Box>
       </Box>
@@ -410,7 +410,7 @@ const Customers = () => {
                 fullWidth
                 size="small"
                 label="Search"
-                placeholder="Name, email, phone..."
+                placeholder="Name, email, phone, etc..."
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
               />
@@ -533,7 +533,7 @@ const Customers = () => {
         <Box display="flex" alignItems="center" gap={2}>
           <Typography variant="body2" color="textSecondary">
             Show {pagination.totalCustomers > 0 ? (page - 1) * limit + 1 : 0} to{' '}
-            {Math.min(page * limit, pagination.totalCustomers)} of {pagination.totalCustomers} customers
+            {Math.min(page * limit, pagination.totalCustomers)} of {pagination.totalCustomers} contacts
           </Typography>
         </Box>
         <FormControl size="small" sx={{ minWidth: 120 }}>
@@ -562,7 +562,7 @@ const Customers = () => {
             <TableHead>
               <TableRow sx={{ backgroundColor: theme.palette.grey[50] }}>
                 <TableCell width="50px"></TableCell>
-                <TableCell>Customer</TableCell>
+                <TableCell>Name</TableCell>
                 <TableCell>Contact</TableCell>
                 <TableCell>Status</TableCell>
                 <TableCell>Joined</TableCell>
@@ -936,7 +936,7 @@ const Customers = () => {
       {/* Add/Edit Customer Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle>
-          {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
+          {editingCustomer ? 'Edit Contact' : 'Add New Contact'}
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 1 }}>

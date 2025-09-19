@@ -46,14 +46,14 @@ const menuItems = [
     path: '/social-media' 
   },
   { 
-    text: 'Customers', 
+    text: 'Contacts', 
     icon: UserIcon, 
-    path: '/customers' 
+    path: '/contacts' 
   },
   { 
-    text: 'Create Customer', 
+    text: 'Create Contact', 
     icon: PersonAdd, 
-    path: '/customers/create' 
+    path: '/contacts/create' 
   },
   { 
     text: 'Donations', 
