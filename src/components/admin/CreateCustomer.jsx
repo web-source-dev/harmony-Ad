@@ -1,0 +1,251 @@
+import React, { useState } from 'react';
+import {
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  Typography,
+  TextField,
+  Button,
+  Alert,
+  CircularProgress,
+  Grid, 
+} from '@mui/material';
+import {
+  PersonAdd,
+  Save,
+  Clear,
+} from '@mui/icons-material';
+import API from '../../BackendAPi/ApiProvider';
+
+const CreateCustomer = () => {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+  });
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Clear field error when user starts typing
+    if (fieldErrors[field]) {
+      setFieldErrors(prev => ({ ...prev, [field]: '' }));
+    }
+    
+    // Clear success/error messages
+    if (success || error) {
+      setSuccess('');
+      setError('');
+    }
+  };
+
+  const validateForm = () => {
+    const newFieldErrors = {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+    };
+    
+    let hasErrors = false;
+    
+    setFieldErrors(newFieldErrors);
+    return !hasErrors;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      setError('');
+      setSuccess('');
+      
+      const customerData = {
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone.trim(),
+        source: 'event',
+        isSubscribed: true,
+        emailSubscriberStatus: 'subscribed',
+        smsSubscriberStatus: 'subscribed',
+        labels: ['event'],
+        subscribedAt: new Date(),
+      };
+      
+      const response = await API.post('/api/admin/customers', customerData);
+      
+      setSuccess(`Customer "${response.data.firstName} ${response.data.lastName}" created successfully!`);
+      
+      // Reset form
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+      });
+      setFieldErrors({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+      });
+      
+    } catch (err) {
+      console.error('Error creating customer:', err);
+      setError(err.response?.data?.message || 'Failed to create customer. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClear = () => {
+    setFormData({
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+    });
+    setFieldErrors({
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+    });
+    setError('');
+    setSuccess('');
+  };
+
+  return (
+    <Box>
+      {/* Header */}
+      <Box display="flex" alignItems="center" gap={2} mb={3}>
+        <PersonAdd color="primary" sx={{ fontSize: 32 }} />
+        <Typography variant="h4" fontWeight="bold">
+          Create New Customer
+        </Typography>
+      </Box>
+
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={12}>
+          <Card>
+            <CardHeader
+              title="Customer Information"
+              subheader="Fill in the customer details below"
+            />
+            <CardContent>
+              <form onSubmit={handleSubmit}>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="First Name"
+                      value={formData.firstName}
+                      onChange={(e) => handleInputChange('firstName', e.target.value)}
+                      error={!!fieldErrors.firstName}
+                      helperText={fieldErrors.firstName}
+                      disabled={isLoading}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Last Name"
+                      value={formData.lastName}
+                      onChange={(e) => handleInputChange('lastName', e.target.value)}
+                      error={!!fieldErrors.lastName}
+                      helperText={fieldErrors.lastName}
+                      disabled={isLoading}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      error={!!fieldErrors.email}
+                      helperText={fieldErrors.email}
+                      disabled={isLoading}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Phone Number"
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      error={!!fieldErrors.phone}
+                      helperText={fieldErrors.phone}
+                      disabled={isLoading}
+                    />
+                  </Grid>
+                </Grid>
+
+                {/* Error Message */}
+                {error && (
+                  <Alert severity="error" sx={{ mt: 3 }}>
+                    {error}
+                  </Alert>
+                )}
+
+                {/* Success Message */}
+                {success && (
+                  <Alert severity="success" sx={{ mt: 3 }}>
+                    {success}
+                  </Alert>
+                )}
+
+                {/* Action Buttons */}
+                <Box display="flex" gap={2} mt={4}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    startIcon={isLoading ? <CircularProgress size={20} /> : <Save />}
+                    disabled={isLoading}
+                    size="large"
+                  >
+                    {isLoading ? 'Creating...' : 'Create Customer'}
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    variant="outlined"
+                    startIcon={<Clear />}
+                    onClick={handleClear}
+                    disabled={isLoading}
+                    size="large"
+                  >
+                    Clear Form
+                  </Button>
+                </Box>
+              </form>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Box>
+  );
+};
+
+export default CreateCustomer;

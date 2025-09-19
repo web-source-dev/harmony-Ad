@@ -13,17 +13,10 @@ import {
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
-  People as PeopleIcon,
   Article as ArticleIcon,
-  Work as WorkIcon,
-  Mail as MailIcon,
-  Chat as ChatIcon,
-  Support as SupportIcon,
-  Settings as SettingsIcon,
-  Subscriptions as SubscriptionsIcon,
-  VolunteerActivism as VolunteerIcon,
   AttachMoney as DonationIcon,
   PersonAdd as UserIcon,
+  PersonAdd,
   Analytics as AnalyticsIcon,
   VideoLibrary as VideoIcon,
   Logout as LogoutIcon,
@@ -56,6 +49,11 @@ const menuItems = [
     text: 'Customers', 
     icon: UserIcon, 
     path: '/customers' 
+  },
+  { 
+    text: 'Create Customer', 
+    icon: PersonAdd, 
+    path: '/customers/create' 
   },
   { 
     text: 'Donations', 
@@ -176,7 +174,7 @@ const Sidebar = () => {
         <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
           User Management
         </ListSubheader>
-        {menuItems.slice(4, 5).map((item) => (
+        {menuItems.slice(4, 6).map((item) => (
           <ListItem
             button
             key={item.text}
@@ -214,7 +212,7 @@ const Sidebar = () => {
         <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
           Engagement
         </ListSubheader>
-        {menuItems.slice(5, 6).map((item) => (
+        {menuItems.slice(6, 7).map((item) => (
           <ListItem
             button
             key={item.text}
