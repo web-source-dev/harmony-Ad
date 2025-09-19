@@ -685,8 +685,7 @@ const ManageBlog = () => {
                                   }}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    window.open(`${process.env.REACT_APP_FRONTEND_URL}/blog/${blog.slug}`, '_blank');
-                                    // View blog logic
+                                    window.open(`https://www.harmony4all.org/blog/${blog.slug}`, '_blank');
                                   }}
                                 >
                                   <Visibility fontSize="small" />
