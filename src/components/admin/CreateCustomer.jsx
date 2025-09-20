@@ -137,7 +137,6 @@ const CreateCustomer = () => {
     <Box>
       {/* Header */}
       <Box display="flex" alignItems="center" gap={2} mb={3}>
-        <PersonAdd color=" #000" sx={{ fontSize: 32 }} />
         <Typography variant="h4" fontWeight="bold">
           Create New Contact
         </Typography>
@@ -241,7 +240,17 @@ const CreateCustomer = () => {
                 )}
 
                 {/* Action Buttons */}
-                <Box display="flex" gap={2} mt={4}>
+                <Box 
+                  display="flex" 
+                  gap={2} 
+                  mt={4}
+                  sx={{
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    '& > *': {
+                      width: { xs: '100%', sm: 'auto' }
+                    }
+                  }}
+                >
                   <Button
                     type="submit"
                     variant="contained"

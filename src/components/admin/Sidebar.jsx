@@ -62,7 +62,7 @@ const menuItems = [
   },
 ];
 
-const Sidebar = () => {
+const Sidebar = ({ mobileOpen, handleDrawerToggle, isMobile }) => {
   const theme = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
@@ -74,20 +74,8 @@ const Sidebar = () => {
     navigate('/admin/login');
   };
 
-  return (
-    <Drawer
-      variant="permanent"
-      sx={{
-        width: drawerWidth,
-        flexShrink: 0,
-        '& .MuiDrawer-paper': {
-          width: drawerWidth,
-          boxSizing: 'border-box',
-          bgcolor: theme.palette.background.paper,
-          borderRight: `1px solid ${theme.palette.divider}`,
-        },
-      }}
-    >
+  const drawer = (
+    <>
       <Box sx={{ p: 3 }}>
         <Typography variant="h6" sx={{ fontWeight: 600 }}>
           Admin Dashboard
@@ -105,6 +93,7 @@ const Sidebar = () => {
             component={Link}
             to={item.path}
             selected={location.pathname === item.path}
+            onClick={isMobile ? handleDrawerToggle : undefined}
             sx={{
               '&.Mui-selected': {
                 bgcolor: `${theme.palette.primary.main}15`,
@@ -143,6 +132,7 @@ const Sidebar = () => {
             component={Link}
             to={item.path}
             selected={location.pathname === item.path}
+            onClick={isMobile ? handleDrawerToggle : undefined}
             sx={{
               '&.Mui-selected': {
                 bgcolor: `${theme.palette.primary.main}15`,
@@ -181,6 +171,7 @@ const Sidebar = () => {
             component={Link}
             to={item.path}
             selected={location.pathname === item.path}
+            onClick={isMobile ? handleDrawerToggle : undefined}
             sx={{
               '&.Mui-selected': {
                 bgcolor: `${theme.palette.primary.main}15`,
@@ -219,6 +210,7 @@ const Sidebar = () => {
             component={Link}
             to={item.path}
             selected={location.pathname === item.path}
+            onClick={isMobile ? handleDrawerToggle : undefined}
             sx={{
               '&.Mui-selected': {
                 bgcolor: `${theme.palette.primary.main}15`,
@@ -270,7 +262,53 @@ const Sidebar = () => {
           />
         </ListItem>
       </Box>
-    </Drawer>
+    </>
+  );
+
+  return (
+    <Box
+      component="nav"
+      sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
+      aria-label="navigation"
+    >
+      {/* Mobile drawer */}
+      <Drawer
+        variant="temporary"
+        open={mobileOpen}
+        onClose={handleDrawerToggle}
+        ModalProps={{
+          keepMounted: true, // Better open performance on mobile.
+        }}
+        sx={{
+          display: { xs: 'block', md: 'none' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: drawerWidth,
+            bgcolor: theme.palette.background.paper,
+            borderRight: `1px solid ${theme.palette.divider}`,
+          },
+        }}
+      >
+        {drawer}
+      </Drawer>
+      
+      {/* Desktop drawer */}
+      <Drawer
+        variant="permanent"
+        sx={{
+          display: { xs: 'none', md: 'block' },
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            width: drawerWidth,
+            bgcolor: theme.palette.background.paper,
+            borderRight: `1px solid ${theme.palette.divider}`,
+          },
+        }}
+        open
+      >
+        {drawer}
+      </Drawer>
+    </Box>
   );
 };
 
