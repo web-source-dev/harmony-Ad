@@ -246,7 +246,7 @@ const CreateCustomer = () => {
                   mt={4}
                   sx={{
                     flexDirection: { xs: 'column', sm: 'row' },
-                    '& > *': {
+                    '& > *': { 
                       width: { xs: '100%', sm: 'auto' }
                     }
                   }}
