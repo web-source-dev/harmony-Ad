@@ -24,6 +24,8 @@ import {
 } from '@mui/icons-material';
 import MediaManagerModal from '../blog/createBlogTabs/modals/MediaManagerModal';
 import API from '../../BackendAPi/ApiProvider';
+import { useNetwork } from '../../contexts/NetworkContext';
+import OfflineMessage from './OfflineMessage';
 
 const VideoManagement = () => {
   // Get current date for default value
@@ -52,6 +54,11 @@ const VideoManagement = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const { isOnline } = useNetwork();
+
+  const handleRetry = () => {
+    window.location.reload();
+  };
 
   const handleInputChange = (field) => (event) => {
     setFormData(prev => ({
@@ -142,6 +149,11 @@ const VideoManagement = () => {
     setError('');
     setSuccess('');
   };
+
+  // Show offline message when offline
+  if (!isOnline) {
+    return <OfflineMessage onRetry={handleRetry} showCreateContact={true} />;
+  }
 
   return (
     <Box sx={{ p: 3 }}>

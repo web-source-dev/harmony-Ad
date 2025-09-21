@@ -52,6 +52,8 @@ import {
 } from '@mui/icons-material';
 import API from '../../BackendAPi/ApiProvider';
 import AnalyticsExport from './AnalyticsExport';
+import { useNetwork } from '../../contexts/NetworkContext';
+import OfflineMessage from './OfflineMessage';
 
 const Analytics = () => {
   const [loading, setLoading] = useState(true);
@@ -59,6 +61,7 @@ const Analytics = () => {
   const [timeRange, setTimeRange] = useState('30');
   const [activeTab, setActiveTab] = useState(0);
   const [showExport, setShowExport] = useState(false);
+  const { isOnline } = useNetwork();
   const [analyticsData, setAnalyticsData] = useState({
     overview: {},
     blogStats: [],
@@ -69,6 +72,10 @@ const Analytics = () => {
     topDonors: [],
     recentActivity: [],
   });
+
+  const handleRetry = () => {
+    window.location.reload();
+  };
 
   const fetchAnalyticsData = async () => {
     try {
@@ -258,8 +265,10 @@ const Analytics = () => {
   };
 
   useEffect(() => {
-    fetchAnalyticsData();
-  }, [timeRange]);
+    if (isOnline) {
+      fetchAnalyticsData();
+    }
+  }, [timeRange, isOnline]);
 
   const handleRefresh = () => {
     fetchAnalyticsData();
@@ -270,6 +279,11 @@ const Analytics = () => {
   };
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+
+  // Show offline message when offline
+  if (!isOnline) {
+    return <OfflineMessage onRetry={handleRetry} showCreateContact={true} />;
+  }
 
   if (loading) {
     return (

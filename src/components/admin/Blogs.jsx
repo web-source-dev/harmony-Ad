@@ -34,10 +34,13 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import API from '../../BackendAPi/ApiProvider';
+import { useNetwork } from '../../contexts/NetworkContext';
+import OfflineMessage from './OfflineMessage';
 
 const Blogs = () => {
   const theme = useTheme();
   const navigate = useNavigate();
+  const { isOnline } = useNetwork();
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
@@ -46,9 +49,15 @@ const Blogs = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedBlog, setSelectedBlog] = useState(null);
 
+  const handleRetry = () => {
+    window.location.reload();
+  };
+
   useEffect(() => {
-    fetchBlogs();
-  }, [page, rowsPerPage]);
+    if (isOnline) {
+      fetchBlogs();
+    }
+  }, [page, rowsPerPage, isOnline]);
 
   const fetchBlogs = async () => {
     try {
@@ -87,6 +96,11 @@ const Blogs = () => {
       console.error('Error deleting blog:', error);
     }
   };
+
+  // Show offline message when offline
+  if (!isOnline) {
+    return <OfflineMessage onRetry={handleRetry} showCreateContact={true} />;
+  }
 
   if (loading) {
     return (

@@ -14,15 +14,24 @@ import {
   Alert,
 } from '@mui/material';
 import API from '../../BackendAPi/ApiProvider';
+import { useNetwork } from '../../contexts/NetworkContext';
+import OfflineMessage from './OfflineMessage';
 
 const AdminDonations = () => {
   const [donations, setDonations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { isOnline } = useNetwork();
+
+  const handleRetry = () => {
+    window.location.reload();
+  };
 
   useEffect(() => {
-    fetchDonations();
-  }, []);
+    if (isOnline) {
+      fetchDonations();
+    }
+  }, [isOnline]);
 
   const fetchDonations = async () => {
     try {
@@ -65,6 +74,11 @@ const AdminDonations = () => {
         return 'default';
     }
   };
+
+  // Show offline message when offline
+  if (!isOnline) {
+    return <OfflineMessage onRetry={handleRetry} showCreateContact={true} />;
+  }
 
   if (loading) {
     return (

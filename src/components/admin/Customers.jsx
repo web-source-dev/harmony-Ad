@@ -53,6 +53,8 @@ import {
   Business as BusinessIcon,
 } from '@mui/icons-material';
 import API from '../../BackendAPi/ApiProvider';
+import { useNetwork } from '../../contexts/NetworkContext';
+import OfflineMessage from './OfflineMessage';
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
@@ -60,6 +62,7 @@ const Customers = () => {
   const [error, setError] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
+  const { isOnline } = useNetwork();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -116,9 +119,15 @@ const Customers = () => {
   const [expandedRows, setExpandedRows] = useState(new Set());
   const theme = useTheme();
 
+  const handleRetry = () => {
+    window.location.reload();
+  };
+
   useEffect(() => {
-    fetchCustomers();
-  }, [page, limit, filters]);
+    if (isOnline) {
+      fetchCustomers();
+    }
+  }, [page, limit, filters, isOnline]);
 
   useEffect(() => {
     fetchSourcesAndLabels();
@@ -356,6 +365,11 @@ const Customers = () => {
       day: 'numeric',
     });
   };
+
+  // Show offline message when offline
+  if (!isOnline) {
+    return <OfflineMessage onRetry={handleRetry} showCreateContact={true} />;
+  }
 
   if (loading) {
     return (

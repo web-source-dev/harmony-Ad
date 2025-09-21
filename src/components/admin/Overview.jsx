@@ -38,6 +38,8 @@ import {
   PersonAdd as UserIcon,
 } from '@mui/icons-material';
 import API from '../../BackendAPi/ApiProvider';
+import { useNetwork } from '../../contexts/NetworkContext';
+import OfflineMessage from './OfflineMessage';
 
 const Overview = () => {
   const [stats, setStats] = useState(null);
@@ -45,10 +47,17 @@ const Overview = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const theme = useTheme();
+  const { isOnline } = useNetwork();
+
+  const handleRetry = () => {
+    window.location.reload();
+  };
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    if (isOnline) {
+      fetchDashboardData();
+    }
+  }, [isOnline]);
 
   const fetchDashboardData = async () => {
     try {
@@ -103,6 +112,11 @@ const Overview = () => {
       currency: 'USD'
     }).format(amount);
   };
+
+  // Show offline message when offline
+  if (!isOnline) {
+    return <OfflineMessage onRetry={handleRetry} showCreateContact={true} />;
+  }
 
   if (loading) {
     return (
