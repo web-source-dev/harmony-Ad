@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
+import { NetworkProvider } from './contexts/NetworkContext';
 import { CssBaseline } from '@mui/material';
 import AdminDashboard from './components/admin/AdminDashboard';
 import AdminOverview from './components/admin/Overview';
@@ -20,9 +21,10 @@ const App = () => {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <CssBaseline />
-        <Router>
-          <Routes>
+        <NetworkProvider>
+          <CssBaseline />
+          <Router>
+            <Routes>
             <Route path="/admin/login" element={<Login />} />
             <Route
               path="/"
@@ -43,8 +45,9 @@ const App = () => {
               <Route path="blog/edit/:id" element={<CreateBlog />} />
               <Route path="blog/manage" element={<ManageBlog />} />
             </Route>
-          </Routes>
-        </Router>
+            </Routes>
+          </Router>
+        </NetworkProvider>
       </AuthProvider>
     </ThemeProvider>
   );

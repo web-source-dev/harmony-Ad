@@ -1,7 +1,7 @@
 {
-  "short_name": "RTN Global",
-  "name": "RTN Global | Web Development & Digital Marketing",
-  "description": "Custom web solutions including Wix development, MERN stack web apps, and React Native mobile apps. Build fast, scalable digital experiences.",
+  "short_name": "Harmony Admin",
+  "name": "Harmony Admin Dashboard",
+  "description": "Admin dashboard for managing customers, blogs, and donations with offline support for events.",
   "icons": [
     {
       "src": "favicon.ico",
@@ -25,20 +25,20 @@
   "display": "standalone",
   "theme_color": "#1976d2",
   "background_color": "#ffffff",
-  "categories": ["business", "web development", "digital marketing"],
+  "categories": ["business", "admin", "crm"],
   "shortcuts": [
     {
-      "name": "Contact Us",
-      "short_name": "Contact",
-      "description": "Reach out to RTN Global for support or inquiries",
-      "url": "/contact",
+      "name": "Create Customer",
+      "short_name": "Create Customer",
+      "description": "Create new customer contacts offline",
+      "url": "/contacts/create",
       "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Services",
-      "short_name": "Services",
-      "description": "Explore our web development and marketing services",
-      "url": "/services",
+      "name": "Manage Customers",
+      "short_name": "Customers",
+      "description": "View and manage all customers",
+      "url": "/contacts",
       "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
     }
   ],

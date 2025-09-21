@@ -38,8 +38,9 @@ API.interceptors.response.use(
     // Handle specific error cases
     if (error.code === 'ECONNREFUSED') {
       error.message = 'Cannot connect to server. Please check if the backend is running.';
-    } else if (error.code === 'NETWORK_ERROR') {
+    } else if (error.code === 'NETWORK_ERROR' || !navigator.onLine) {
       error.message = 'Network error. Please check your internet connection.';
+      error.isOffline = true;
     } else if (error.response?.status === 413) {
       error.message = 'File too large. Please choose a smaller file.';
     } else if (error.response?.status === 415) {

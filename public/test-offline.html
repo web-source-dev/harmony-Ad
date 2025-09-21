@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .online { background-color: #d4edda; color: #155724; }
+        .offline { background-color: #f8d7da; color: #721c24; }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .instructions {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Harmony Admin - Offline Functionality Test</h1>
+    
+    <div id="networkStatus" class="status">
+        Checking network status...
+    </div>
+
+    <div class="instructions">
+        <h3>Testing Instructions:</h3>
+        <ol>
+            <li><strong>Online Test:</strong> Make sure you're connected to the internet and visit <a href="/contacts/create" target="_blank">Create Customer Page</a></li>
+            <li><strong>Offline Test:</strong> 
+                <ul>
+                    <li>Open Chrome DevTools (F12)</li>
+                    <li>Go to Network tab</li>
+                    <li>Check "Offline" checkbox</li>
+                    <li>Refresh the page or navigate to <a href="/contacts/create" target="_blank">Create Customer Page</a></li>
+                    <li>The page should still load and allow customer creation</li>
+                </ul>
+            </li>
+            <li><strong>Sync Test:</strong> Uncheck "Offline" in DevTools and watch the sync happen automatically</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>Service Worker Status</h3>
+        <div id="swStatus">Checking...</div>
+        <button onclick="checkServiceWorker()">Check Service Worker</button>
+        <button onclick="unregisterServiceWorker()">Unregister SW</button>
+    </div>
+
+    <div class="test-section">
+        <h3>IndexedDB Status</h3>
+        <div id="dbStatus">Checking...</div>
+        <button onclick="checkIndexedDB()">Test IndexedDB</button>
+        <button onclick="cleanupSyncedCustomers()">Cleanup Synced Customers</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Cache Status</h3>
+        <div id="cacheStatus">Checking...</div>
+        <button onclick="checkCache()">Check Cache</button>
+        <button onclick="clearCache()">Clear Cache</button>
+    </div>
+
+    <div class="test-section">
+        <h3>Quick Links</h3>
+        <a href="/" target="_blank"><button>Admin Dashboard</button></a>
+        <a href="/contacts/create" target="_blank"><button>Create Customer</button></a>
+        <a href="/contacts" target="_blank"><button>Manage Customers</button></a>
+    </div>
+
+    <script>
+        // Check network status
+        function updateNetworkStatus() {
+            const statusDiv = document.getElementById('networkStatus');
+            if (navigator.onLine) {
+                statusDiv.className = 'status online';
+                statusDiv.textContent = '🟢 Online - Full functionality available';
+            } else {
+                statusDiv.className = 'status offline';
+                statusDiv.textContent = '🔴 Offline - Offline mode active';
+            }
+        }
+
+        // Check service worker
+        async function checkServiceWorker() {
+            const statusDiv = document.getElementById('swStatus');
+            
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registration = await navigator.serviceWorker.getRegistration();
+                    if (registration) {
+                        statusDiv.innerHTML = `✅ Service Worker registered<br>
+                            Scope: ${registration.scope}<br>
+                            State: ${registration.active ? registration.active.state : 'inactive'}`;
+                    } else {
+                        statusDiv.textContent = '❌ No service worker registered';
+                    }
+                } catch (error) {
+                    statusDiv.textContent = `❌ Error: ${error.message}`;
+                }
+            } else {
+                statusDiv.textContent = '❌ Service Worker not supported';
+            }
+        }
+
+        // Unregister service worker
+        async function unregisterServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                try {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (let registration of registrations) {
+                        await registration.unregister();
+                    }
+                    document.getElementById('swStatus').textContent = '✅ Service Worker unregistered';
+                } catch (error) {
+                    document.getElementById('swStatus').textContent = `❌ Error: ${error.message}`;
+                }
+            }
+        }
+
+        // Check IndexedDB
+        async function checkIndexedDB() {
+            const statusDiv = document.getElementById('dbStatus');
+            
+            if ('indexedDB' in window) {
+                try {
+                    const request = indexedDB.open('HarmonyAdminDB', 1);
+                    request.onsuccess = () => {
+                        const db = request.result;
+                        const objectStores = Array.from(db.objectStoreNames);
+                        statusDiv.innerHTML = `✅ IndexedDB available<br>
+                            Database: ${db.name}<br>
+                            Version: ${db.version}<br>
+                            Object Stores: ${objectStores.join(', ') || 'None'}`;
+                        db.close();
+                    };
+                    request.onerror = () => {
+                        statusDiv.textContent = `❌ Failed to open IndexedDB: ${request.error}`;
+                    };
+                } catch (error) {
+                    statusDiv.textContent = `❌ Error: ${error.message}`;
+                }
+            } else {
+                statusDiv.textContent = '❌ IndexedDB not supported';
+            }
+        }
+
+        // Check cache
+        async function checkCache() {
+            const statusDiv = document.getElementById('cacheStatus');
+            
+            if ('caches' in window) {
+                try {
+                    const cacheNames = await caches.keys();
+                    let status = `✅ Cache API available<br>Cache Names: ${cacheNames.join(', ') || 'None'}<br>`;
+                    
+                    for (let cacheName of cacheNames) {
+                        const cache = await caches.open(cacheName);
+                        const keys = await cache.keys();
+                        status += `${cacheName}: ${keys.length} items<br>`;
+                    }
+                    
+                    statusDiv.innerHTML = status;
+                } catch (error) {
+                    statusDiv.textContent = `❌ Error: ${error.message}`;
+                }
+            } else {
+                statusDiv.textContent = '❌ Cache API not supported';
+            }
+        }
+
+        // Clear cache
+        async function clearCache() {
+            if ('caches' in window) {
+                try {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(cacheNames.map(name => caches.delete(name)));
+                    document.getElementById('cacheStatus').textContent = '✅ All caches cleared';
+                } catch (error) {
+                    document.getElementById('cacheStatus').textContent = `❌ Error: ${error.message}`;
+                }
+            }
+        }
+
+        // Cleanup synced customers
+        async function cleanupSyncedCustomers() {
+            if ('indexedDB' in window) {
+                try {
+                    const request = indexedDB.open('HarmonyAdminDB', 1);
+                    request.onsuccess = () => {
+                        const db = request.result;
+                        const transaction = db.transaction(['customers'], 'readwrite');
+                        const store = transaction.objectStore('customers');
+                        
+                        store.getAll().onsuccess = (event) => {
+                            const allCustomers = event.target.result || [];
+                            const syncedCustomers = allCustomers.filter(customer => 
+                                customer && customer.synced === true
+                            );
+                            
+                            if (syncedCustomers.length === 0) {
+                                document.getElementById('dbStatus').innerHTML += '<br>✅ No synced customers to cleanup';
+                                return;
+                            }
+                            
+                            const deletePromises = syncedCustomers.map(customer => {
+                                return new Promise((resolve) => {
+                                    const deleteRequest = store.delete(customer.id);
+                                    deleteRequest.onsuccess = () => resolve();
+                                    deleteRequest.onerror = () => resolve();
+                                });
+                            });
+                            
+                            Promise.all(deletePromises).then(() => {
+                                document.getElementById('dbStatus').innerHTML += `<br>✅ Cleaned up ${syncedCustomers.length} synced customers`;
+                            });
+                        };
+                    };
+                } catch (error) {
+                    document.getElementById('dbStatus').innerHTML += `<br>❌ Cleanup error: ${error.message}`;
+                }
+            }
+        }
+
+        // Initialize
+        window.addEventListener('online', updateNetworkStatus);
+        window.addEventListener('offline', updateNetworkStatus);
+        
+        updateNetworkStatus();
+        checkServiceWorker();
+        checkIndexedDB();
+        checkCache();
+    </script>
+</body>
+</html>
