@@ -115,7 +115,7 @@ const Overview = () => {
 
   // Show offline message when offline
   if (!isOnline) {
-    return <OfflineMessage onRetry={handleRetry} showCreateContact={true} />;
+    return <OfflineMessage onRetry={handleRetry} autoRedirect={true} />;
   }
 
   if (loading) {

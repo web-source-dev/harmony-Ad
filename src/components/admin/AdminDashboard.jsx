@@ -42,7 +42,7 @@ const AdminDashboard = () => {
             mt: { xs: '64px', md: 0 }
           }}
         >
-          <OfflineMessage onRetry={handleRetry} showCreateContact={true} />
+          <OfflineMessage onRetry={handleRetry} autoRedirect={true} />
         </Box>
       </Box>
     );
