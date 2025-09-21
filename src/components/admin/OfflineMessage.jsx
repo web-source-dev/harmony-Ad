@@ -15,7 +15,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
-const OfflineMessage = ({ onRetry, autoRedirect = false, redirectDelay = 3000 }) => {
+const OfflineMessage = ({ onRetry, autoRedirect = false, redirectDelay = 1000 }) => {
   const theme = useTheme();
   const navigate = useNavigate();
   const [countdown, setCountdown] = useState(redirectDelay / 1000);
@@ -65,9 +65,6 @@ const OfflineMessage = ({ onRetry, autoRedirect = false, redirectDelay = 3000 })
             />
              <Typography variant="h4" fontWeight="bold" gutterBottom>
                You're Offline
-             </Typography>
-             <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-               This page requires an internet connection to function properly.
              </Typography>
            </Box>
 
