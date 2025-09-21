@@ -78,6 +78,11 @@ export const NetworkProvider = ({ children }) => {
         .then((registration) => {
           console.log('Service Worker is ready');
           
+          // Pre-cache important pages when online
+          if (navigator.onLine) {
+            preCacheImportantPages();
+          }
+          
           // Register background sync
           if ('sync' in window.ServiceWorkerRegistration.prototype) {
             return registration.sync.register('customer-sync');
@@ -97,6 +102,40 @@ export const NetworkProvider = ({ children }) => {
       window.removeEventListener('offline', handleOffline);
     };
   }, [wasOffline]);
+
+  // Pre-cache important pages when online
+  const preCacheImportantPages = async () => {
+    if ('caches' in window) {
+      try {
+        const cache = await caches.open('harmony-admin-v1');
+        const importantPages = [
+          '/',
+          '/contacts/create',
+          '/contacts',
+          '/admin/login'
+        ];
+        
+        // Cache each page
+        await Promise.allSettled(
+          importantPages.map(async (page) => {
+            try {
+              const response = await fetch(page);
+              if (response.ok) {
+                await cache.put(page, response);
+                console.log(`Pre-cached page: ${page}`);
+              }
+            } catch (error) {
+              console.warn(`Failed to pre-cache ${page}:`, error);
+            }
+          })
+        );
+        
+        console.log('Important pages pre-cached successfully');
+      } catch (error) {
+        console.error('Failed to pre-cache pages:', error);
+      }
+    }
+  };
 
   const value = {
     isOnline,

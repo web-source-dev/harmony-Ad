@@ -9,8 +9,20 @@ const CACHE_URLS = [
   '/static/js/bundle.js',
   '/static/css/main.css',
   '/manifest.json',
-  // Add other static assets that might be needed
+  '/favicon.ico',
+  // React app routes that should work offline
+  '/contacts/create',
+  '/contacts',
+  '/admin/login'
 ];
+
+// Cache strategy types
+const CACHE_STRATEGIES = {
+  CACHE_FIRST: 'cache-first',
+  NETWORK_FIRST: 'network-first',
+  CACHE_ONLY: 'cache-only',
+  NETWORK_ONLY: 'network-only'
+};
 
 // Install event
 self.addEventListener('install', (event) => {
@@ -20,14 +32,24 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Caching app shell...');
-        return cache.addAll(CACHE_URLS);
+        // Try to cache all URLs, but don't fail if some fail
+        return Promise.allSettled(
+          CACHE_URLS.map(url => 
+            cache.add(url).catch(error => {
+              console.warn(`Failed to cache ${url}:`, error);
+              return null;
+            })
+          )
+        );
       })
       .then(() => {
-        console.log('App shell cached successfully');
+        console.log('App shell caching completed');
         return self.skipWaiting();
       })
       .catch((error) => {
         console.error('Failed to cache app shell:', error);
+        // Still skip waiting even if caching fails
+        return self.skipWaiting();
       })
   );
 });
@@ -56,61 +78,119 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event for offline handling
 self.addEventListener('fetch', (event) => {
+  const request = event.request;
+  const url = new URL(request.url);
+
   // Handle API requests for customers
-  if (event.request.url.includes('/api/admin/customers') && 
-      event.request.method === 'POST') {
-    event.respondWith(handleCustomerCreation(event.request));
+  if (url.pathname.includes('/api/admin/customers') && 
+      request.method === 'POST') {
+    event.respondWith(handleCustomerCreation(request));
     return;
   }
 
-  // Handle navigation requests (HTML pages)
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .catch(() => {
-          // If offline, serve the cached index.html
-          return caches.match('/') || caches.match('/index.html');
-        })
-    );
+  // Handle navigation requests (HTML pages) - CRITICAL for offline support
+  if (request.mode === 'navigate') {
+    event.respondWith(handleNavigationRequest(request));
     return;
   }
 
-  // Handle other requests (JS, CSS, images, etc.)
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Return cached version if available
-        if (response) {
-          return response;
-        }
-        
-        // Otherwise, try to fetch from network
-        return fetch(event.request)
-          .then((response) => {
-            // Cache successful responses
-            if (response.status === 200) {
-              const responseClone = response.clone();
-              caches.open(CACHE_NAME)
-                .then((cache) => {
-                  cache.put(event.request, responseClone);
-                });
-            }
-            return response;
-          })
-          .catch(() => {
-            // If request fails and it's for an image, return a placeholder
-            if (event.request.destination === 'image') {
-              return new Response('', {
-                status: 200,
-                statusText: 'OK',
-                headers: { 'Content-Type': 'image/svg+xml' }
-              });
-            }
-            throw new Error('Network request failed');
-          });
-      })
-  );
+  // Handle static assets (JS, CSS, images, etc.)
+  event.respondWith(handleStaticAssetRequest(request));
 });
+
+// Handle navigation requests with aggressive caching
+async function handleNavigationRequest(request) {
+  try {
+    // Try network first for navigation
+    const networkResponse = await fetch(request);
+    
+    // If successful, cache the response
+    if (networkResponse.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(request, networkResponse.clone());
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    console.log('Network failed for navigation, trying cache:', request.url);
+    
+    // Network failed, try to serve from cache
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      console.log('Serving cached navigation:', request.url);
+      return cachedResponse;
+    }
+    
+    // Try to serve index.html for any navigation request
+    const indexResponse = await caches.match('/');
+    if (indexResponse) {
+      console.log('Serving cached index.html for:', request.url);
+      return indexResponse;
+    }
+    
+    // Last resort: return a basic offline page
+    return new Response(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Harmony Admin - Offline</title>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+            .offline { color: #666; }
+            .retry { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+          </style>
+        </head>
+        <body>
+          <h1>Harmony Admin</h1>
+          <p class="offline">You're currently offline</p>
+          <p>Some features may not be available.</p>
+          <button class="retry" onclick="location.reload()">Retry</button>
+        </body>
+      </html>
+    `, {
+      status: 200,
+      headers: { 'Content-Type': 'text/html' }
+    });
+  }
+}
+
+// Handle static asset requests with cache-first strategy
+async function handleStaticAssetRequest(request) {
+  try {
+    // Try cache first for static assets
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    // If not in cache, try network
+    const networkResponse = await fetch(request);
+    
+    // Cache successful responses
+    if (networkResponse.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(request, networkResponse.clone());
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    console.log('Failed to fetch static asset:', request.url);
+    
+    // For images, return a placeholder
+    if (request.destination === 'image') {
+      return new Response('', {
+        status: 200,
+        statusText: 'OK',
+        headers: { 'Content-Type': 'image/svg+xml' }
+      });
+    }
+    
+    // For other assets, return a basic error
+    throw error;
+  }
+}
 
 // Handle customer creation requests
 async function handleCustomerCreation(request) {
