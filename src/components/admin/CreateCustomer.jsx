@@ -111,7 +111,7 @@ const CreateCustomer = () => {
           loadOfflineCustomers();
           break;
         case 'customerSynced':
-          setSuccess(`Customer "${data.customer.firstName} ${data.customer.lastName}" synced successfully!`);
+          setSuccess(`Contact "${data.customer.firstName} ${data.customer.lastName}" synced successfully!`);
           // Refresh offline customers list since customer was removed
           loadOfflineCustomers();
           break;
@@ -260,9 +260,9 @@ const CreateCustomer = () => {
     try {
       const offlineCustomer = await offlineStorage.storeCustomer(customerData);
       setSuccess(`Contact "${offlineCustomer.firstName} ${offlineCustomer.lastName}" stored offline and will be synced when online!`);
-      console.log('Customer stored offline:', offlineCustomer);
+      console.log('Contact stored offline:', offlineCustomer);
     } catch (error) {
-      throw new Error('Failed to store customer offline');
+      throw new Error('Failed to store contact offline');
     }
   };
 
@@ -514,7 +514,7 @@ const CreateCustomer = () => {
         <DialogTitle>
           <Box display="flex" alignItems="center" justifyContent="space-between">
             <Typography variant="h6">
-              Offline Customers ({offlineCustomers.length})
+              Offline Contacts ({offlineCustomers.length})
             </Typography>
             {isOnline && syncStatus.offlineCustomers > 0 && (
               <Button
@@ -535,14 +535,14 @@ const CreateCustomer = () => {
             <Box mb={2}>
               <LinearProgress />
               <Typography variant="body2" color="text.secondary" mt={1}>
-                Syncing customers to server...
+                Syncing contacts to server...
               </Typography>
             </Box>
           )}
           
           {offlineCustomers.length === 0 ? (
             <Typography color="text.secondary">
-              No offline customers to sync.
+              No offline contacts to sync.
             </Typography>
           ) : (
             <List>
