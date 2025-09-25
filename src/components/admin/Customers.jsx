@@ -366,10 +366,7 @@ const Customers = () => {
     });
   };
 
-  // Show offline message when offline
-  if (!isOnline) {
-    return <OfflineMessage onRetry={handleRetry} autoRedirect={true} />;
-  }
+  // Customers page works normally - no offline restrictions
 
   if (loading) {
     return (

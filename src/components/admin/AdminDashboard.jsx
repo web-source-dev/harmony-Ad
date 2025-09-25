@@ -24,7 +24,7 @@ const AdminDashboard = () => {
   // Check if current page is the Create Contact page
   const isCreateContactPage = location.pathname === '/contacts/create';
 
-  // If offline and not on Create Contact page, show offline message
+  // Only show offline message for non-Create Contact pages when offline
   if (!isOnline && !isCreateContactPage) {
     return (
       <Box sx={{ display: 'flex', minHeight: '100vh' }}>

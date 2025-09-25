@@ -103,36 +103,34 @@ export const NetworkProvider = ({ children }) => {
     };
   }, [wasOffline]);
 
-  // Pre-cache important pages when online
+  // Pre-cache only the Create Contact page when online
   const preCacheImportantPages = async () => {
     if ('caches' in window) {
       try {
         const cache = await caches.open('harmony-admin-v1');
+        // Only cache the Create Contact page
         const importantPages = [
-          '/',
-          '/contacts/create',
-          '/contacts',
-          '/admin/login'
+          '/contacts/create'
         ];
         
-        // Cache each page
+        // Cache only the Create Contact page
         await Promise.allSettled(
           importantPages.map(async (page) => {
             try {
               const response = await fetch(page);
               if (response.ok) {
                 await cache.put(page, response);
-                console.log(`Pre-cached page: ${page}`);
+                console.log(`Pre-cached Create Contact page: ${page}`);
               }
             } catch (error) {
-              console.warn(`Failed to pre-cache ${page}:`, error);
+              console.warn(`Failed to pre-cache Create Contact page:`, error);
             }
           })
         );
         
-        console.log('Important pages pre-cached successfully');
+        console.log('Create Contact page pre-cached successfully');
       } catch (error) {
-        console.error('Failed to pre-cache pages:', error);
+        console.error('Failed to pre-cache Create Contact page:', error);
       }
     }
   };

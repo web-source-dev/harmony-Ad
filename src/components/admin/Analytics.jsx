@@ -280,10 +280,7 @@ const Analytics = () => {
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
-  // Show offline message when offline
-  if (!isOnline) {
-    return <OfflineMessage onRetry={handleRetry} autoRedirect={true} />;
-  }
+  // Analytics page works normally - no offline restrictions
 
   if (loading) {
     return (

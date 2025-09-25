@@ -150,10 +150,7 @@ const VideoManagement = () => {
     setSuccess('');
   };
 
-  // Show offline message when offline
-  if (!isOnline) {
-    return <OfflineMessage onRetry={handleRetry} autoRedirect={true} />;
-  }
+  // Video Management page works normally - no offline restrictions
 
   return (
     <Box sx={{ p: 3 }}>

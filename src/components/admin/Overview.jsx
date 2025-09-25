@@ -113,10 +113,7 @@ const Overview = () => {
     }).format(amount);
   };
 
-  // Show offline message when offline
-  if (!isOnline) {
-    return <OfflineMessage onRetry={handleRetry} autoRedirect={true} />;
-  }
+  // Overview page works normally - no offline restrictions
 
   if (loading) {
     return (

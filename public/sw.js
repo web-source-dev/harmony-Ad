@@ -3,17 +3,14 @@ const CACHE_NAME = 'harmony-admin-v1';
 const OFFLINE_CUSTOMERS_KEY = 'offline_customers';
 const SYNC_QUEUE_KEY = 'sync_queue';
 
-// Resources to cache for offline functionality
+// Resources to cache for offline functionality - ONLY Create Contact page
 const CACHE_URLS = [
-  '/',
   '/static/js/bundle.js',
   '/static/css/main.css',
   '/manifest.json',
   '/favicon.ico',
-  // React app routes that should work offline
-  '/contacts/create',
-  '/contacts',
-  '/admin/login'
+  // Only cache the Create Contact page for offline functionality
+  '/contacts/create'
 ];
 
 // Cache strategy types
@@ -98,61 +95,68 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(handleStaticAssetRequest(request));
 });
 
-// Handle navigation requests with aggressive caching
+// Handle navigation requests - only cache Create Contact page
 async function handleNavigationRequest(request) {
+  const url = new URL(request.url);
+  
+  // Only handle caching for Create Contact page
+  if (url.pathname === '/contacts/create') {
+    try {
+      // Try network first for Create Contact page
+      const networkResponse = await fetch(request);
+      
+      // If successful, cache the response
+      if (networkResponse.ok) {
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(request, networkResponse.clone());
+      }
+      
+      return networkResponse;
+    } catch (error) {
+      console.log('Network failed for Create Contact page, trying cache:', request.url);
+      
+      // Network failed, try to serve from cache for Create Contact page only
+      const cachedResponse = await caches.match(request);
+      if (cachedResponse) {
+        console.log('Serving cached Create Contact page:', request.url);
+        return cachedResponse;
+      }
+      
+      // Return offline message for Create Contact page
+      return new Response(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <title>Harmony Admin - Create Contact (Offline)</title>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+              body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+              .offline { color: #666; }
+              .retry { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+            </style>
+          </head>
+          <body>
+            <h1>Harmony Admin - Create Contact</h1>
+            <p class="offline">You're currently offline</p>
+            <p>You can still create contacts offline. They will be synced when you're back online.</p>
+            <button class="retry" onclick="location.reload()">Retry</button>
+          </body>
+        </html>
+      `, {
+        status: 200,
+        headers: { 'Content-Type': 'text/html' }
+      });
+    }
+  }
+  
+  // For all other pages, always try network first (no caching)
   try {
-    // Try network first for navigation
-    const networkResponse = await fetch(request);
-    
-    // If successful, cache the response
-    if (networkResponse.ok) {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(request, networkResponse.clone());
-    }
-    
-    return networkResponse;
+    return await fetch(request);
   } catch (error) {
-    console.log('Network failed for navigation, trying cache:', request.url);
-    
-    // Network failed, try to serve from cache
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      console.log('Serving cached navigation:', request.url);
-      return cachedResponse;
-    }
-    
-    // Try to serve index.html for any navigation request
-    const indexResponse = await caches.match('/');
-    if (indexResponse) {
-      console.log('Serving cached index.html for:', request.url);
-      return indexResponse;
-    }
-    
-    // Last resort: return a basic offline page
-    return new Response(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Harmony Admin - Offline</title>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <style>
-            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-            .offline { color: #666; }
-            .retry { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
-          </style>
-        </head>
-        <body>
-          <h1>Harmony Admin</h1>
-          <p class="offline">You're currently offline</p>
-          <p>Some features may not be available.</p>
-          <button class="retry" onclick="location.reload()">Retry</button>
-        </body>
-      </html>
-    `, {
-      status: 200,
-      headers: { 'Content-Type': 'text/html' }
-    });
+    console.log('Network failed for page:', request.url);
+    // For non-Create Contact pages, just let the error propagate
+    throw error;
   }
 }
 
