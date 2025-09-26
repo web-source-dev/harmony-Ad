@@ -126,16 +126,12 @@ const VisitorPopup = ({ open, onClose, onVisitorInfo }) => {
         <Box display="flex" alignItems="center" gap={2}>
           <PersonIcon color="primary" />
           <Typography variant="h6">
-            Welcome to Harmony
+            Welcome to Harmony 4 All
           </Typography>
         </Box>
       </DialogTitle>
       
       <DialogContent>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          Tell us about yourself
-        </Typography>
-        
         <form onSubmit={handleSubmit}>
           <Box display="flex" flexDirection="column" gap={2}>
             <TextField

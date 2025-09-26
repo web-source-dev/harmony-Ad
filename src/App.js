@@ -38,7 +38,7 @@ const App = () => {
         <Router>
           <Routes>
           {/* Public Routes */}
-          <Route path="/contact" element={<PublicCreateContact />} />
+          <Route path="/contact-intake" element={<PublicCreateContact />} />
           
           {/* Admin Routes */}
           <Route path="/admin/login" element={<Login />} />
