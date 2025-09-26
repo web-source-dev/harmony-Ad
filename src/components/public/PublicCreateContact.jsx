@@ -35,6 +35,7 @@ import {
 import API from '../../BackendAPi/ApiProvider';
 import publicOfflineStorage from '../../services/publicOfflineStorage';
 import publicSyncService from '../../services/publicSyncService';
+import VisitorPopup from './VisitorPopup';
 
 const PublicCreateContact = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -64,6 +65,8 @@ const PublicCreateContact = () => {
   });
   const [showOfflineDialog, setShowOfflineDialog] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [showVisitorPopup, setShowVisitorPopup] = useState(false);
+  const [visitorInfo, setVisitorInfo] = useState(null);
 
   // Initialize offline storage and sync service
   useEffect(() => {
@@ -71,6 +74,14 @@ const PublicCreateContact = () => {
       try {
         console.log('Initializing public offline storage...');
         await publicOfflineStorage.init();
+        
+        // Check if visitor info exists in localStorage
+        const storedVisitorInfo = localStorage.getItem('harmony_visitor_info');
+        if (storedVisitorInfo) {
+          setVisitorInfo(JSON.parse(storedVisitorInfo));
+        } else {
+          setShowVisitorPopup(true);
+        }
         
         await updateSyncStatus();
         await loadOfflineCustomers();
@@ -161,6 +172,12 @@ const PublicCreateContact = () => {
     } catch (error) {
       console.error('Auto-sync failed:', error);
     }
+  };
+
+  const handleVisitorInfo = (visitorData) => {
+    setVisitorInfo(visitorData);
+    setShowVisitorPopup(false);
+    console.log('Visitor info saved:', visitorData);
   };
 
   const handleInputChange = (field, value) => {
@@ -312,6 +329,15 @@ const PublicCreateContact = () => {
         
         {/* Network Status and Offline Info */}
         <Box display="flex" alignItems="center" gap={2}>
+          {visitorInfo && (
+            <Chip
+              icon={<PersonAdd />}
+              label={`Welcome, ${visitorInfo.name}`}
+              color="success"
+              variant="outlined"
+            />
+          )}
+          
           {!isOnline && (
             <Chip
               icon={<CloudOff />}
@@ -588,6 +614,13 @@ const PublicCreateContact = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Visitor Info Popup */}
+      <VisitorPopup
+        open={showVisitorPopup}
+        onClose={() => {}} // Don't allow closing without providing info
+        onVisitorInfo={handleVisitorInfo}
+      />
     </Container>
   );
 };
