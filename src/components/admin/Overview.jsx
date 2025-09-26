@@ -38,8 +38,6 @@ import {
   PersonAdd as UserIcon,
 } from '@mui/icons-material';
 import API from '../../BackendAPi/ApiProvider';
-import { useNetwork } from '../../contexts/NetworkContext';
-import OfflineMessage from './OfflineMessage';
 
 const Overview = () => {
   const [stats, setStats] = useState(null);
@@ -47,17 +45,10 @@ const Overview = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const theme = useTheme();
-  const { isOnline } = useNetwork();
-
-  const handleRetry = () => {
-    window.location.reload();
-  };
 
   useEffect(() => {
-    if (isOnline) {
-      fetchDashboardData();
-    }
-  }, [isOnline]);
+    fetchDashboardData();
+  }, []);
 
   const fetchDashboardData = async () => {
     try {
@@ -113,7 +104,6 @@ const Overview = () => {
     }).format(amount);
   };
 
-  // Overview page works normally - no offline restrictions
 
   if (loading) {
     return (

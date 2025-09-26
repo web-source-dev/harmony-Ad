@@ -3,50 +3,15 @@ import { Box, Container, useMediaQuery, useTheme, AppBar, Toolbar, IconButton, T
 import { Menu as MenuIcon } from '@mui/icons-material';
 import Sidebar from './Sidebar';
 import { Outlet, useLocation, Navigate } from 'react-router-dom';
-import { useNetwork } from '../../contexts/NetworkContext';
-import OfflineMessage from './OfflineMessage';
 
 const AdminDashboard = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { isOnline } = useNetwork();
-  const location = useLocation();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
-
-  const handleRetry = () => {
-    window.location.reload();
-  };
-
-  // Check if current page is the Create Contact page
-  const isCreateContactPage = location.pathname === '/contacts/create';
-
-  // Only show offline message for non-Create Contact pages when offline
-  if (!isOnline && !isCreateContactPage) {
-    return (
-      <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-        <Sidebar 
-          mobileOpen={mobileOpen} 
-          handleDrawerToggle={handleDrawerToggle}
-          isMobile={isMobile}
-        />
-        <Box 
-          component="main" 
-          sx={{ 
-            flexGrow: 1, 
-            overflow: 'auto',
-            width: { md: `calc(100% - 240px)` },
-            mt: { xs: '64px', md: 0 }
-          }}
-        >
-          <OfflineMessage onRetry={handleRetry} autoRedirect={true} />
-        </Box>
-      </Box>
-    );
-  }
 
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>

@@ -23,7 +23,6 @@ import {
 } from '@mui/icons-material';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNetwork } from '../../contexts/NetworkContext';
 
 const menuItems = [
   { 
@@ -68,20 +67,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, isMobile }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const { isOnline } = useNetwork();
   const drawerWidth = 240;
-
-  // Filter menu items based on online status
-  const getAvailableMenuItems = () => {
-    if (isOnline) {
-      return menuItems;
-    } else {
-      // When offline, only show Create Contact
-      return menuItems.filter(item => item.path === '/contacts/create');
-    }
-  };
-
-  const availableMenuItems = getAvailableMenuItems();
 
   const handleLogout = () => {
     logout();
@@ -97,17 +83,10 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, isMobile }) => {
       </Box>
       <Divider />
       <List>
-        {!isOnline && (
-          <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600, color: 'warning.main' }}>
-            Offline Mode
-          </ListSubheader>
-        )}
-        {isOnline && (
-          <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
-            Platform Overview
-          </ListSubheader>
-        )}
-        {availableMenuItems.slice(0, 2).map((item) => (
+        <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
+          Platform Overview
+        </ListSubheader>
+        {menuItems.slice(0, 2).map((item) => (
           <ListItem
             button
             key={item.text}
@@ -141,14 +120,12 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, isMobile }) => {
         ))}
       </List>
       
-      {isOnline && (
-        <>
-          <Divider />
-          <List>
-            <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
-              Content Management
-            </ListSubheader>
-            {availableMenuItems.slice(2, 4).map((item) => (
+      <Divider />
+      <List>
+        <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
+          Content Management
+        </ListSubheader>
+        {menuItems.slice(2, 4).map((item) => (
           <ListItem
             button
             key={item.text}
@@ -179,19 +156,15 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, isMobile }) => {
               }}
             />
           </ListItem>
-            ))}
-          </List>
-        </>
-      )}
+        ))}
+      </List>
 
-      {isOnline && (
-        <>
-          <Divider />
-          <List>
-            <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
-              User Management
-            </ListSubheader>
-            {availableMenuItems.slice(4, 6).map((item) => (
+      <Divider />
+      <List>
+        <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
+          User Management
+        </ListSubheader>
+        {menuItems.slice(4, 6).map((item) => (
           <ListItem
             button
             key={item.text}
@@ -222,19 +195,15 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, isMobile }) => {
               }}
             />
           </ListItem>
-            ))}
-          </List>
-        </>
-      )}
+        ))}
+      </List>
 
-      {isOnline && (
-        <>
-          <Divider />
-          <List>
-            <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
-              Engagement
-            </ListSubheader>
-            {availableMenuItems.slice(6, 7).map((item) => (
+      <Divider />
+      <List>
+        <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
+          Engagement
+        </ListSubheader>
+        {menuItems.slice(6, 7).map((item) => (
           <ListItem
             button
             key={item.text}
@@ -265,10 +234,8 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, isMobile }) => {
               }}
             />
           </ListItem>
-            ))}
-          </List>
-        </>
-      )}
+        ))}
+      </List>
 
       <Box sx={{ mt: 'auto', p: 2 }}>
         <ListItem

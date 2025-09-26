@@ -1,58 +1,17 @@
 {
-  "short_name": "Harmony Admin",
-  "name": "Harmony Admin Dashboard",
-  "description": "Admin dashboard for managing customers, blogs, and donations with offline support for events.",
+  "short_name": "Harmony Contact",
+  "name": "Harmony Contact Form",
+  "description": "Contact form for Harmony organization",
   "icons": [
     {
       "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
-    },
-    {
-      "src": "logo192.png",
-      "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "logo512.png",
-      "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "any maskable"
     }
   ],
-  "start_url": ".",
+  "start_url": "/contact",
   "display": "standalone",
-  "theme_color": "#1976d2",
+  "theme_color": "#000000",
   "background_color": "#ffffff",
-  "scope": "/",
-  "orientation": "portrait-primary",
-  "categories": ["business", "admin", "crm"],
-  "shortcuts": [
-    {
-      "name": "Create Customer",
-      "short_name": "Create Customer",
-      "description": "Create new customer contacts offline",
-      "url": "/contacts/create",
-      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
-    },
-    {
-      "name": "Manage Customers",
-      "short_name": "Customers",
-      "description": "View and manage all customers",
-      "url": "/contacts",
-      "icons": [{ "src": "logo192.png", "sizes": "192x192" }]
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/images/screenshots/home.jpg",
-      "sizes": "1280x720",
-      "type": "image/jpeg",
-      "platform": "wide",
-      "label": "RTN Global Homepage"
-    }
-  ],
-  "related_applications": [],
-  "prefer_related_applications": false
+  "scope": "/contact"
 }

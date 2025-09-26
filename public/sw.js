@@ -1,354 +1,113 @@
-// Service Worker for offline functionality
-const CACHE_NAME = 'harmony-admin-v1';
-const OFFLINE_CUSTOMERS_KEY = 'offline_customers';
-const SYNC_QUEUE_KEY = 'sync_queue';
-
-// Resources to cache for offline functionality - ONLY Create Contact page
-const CACHE_URLS = [
+const CACHE_NAME = 'harmony-contact-v1';
+const urlsToCache = [
+  '/contact',
+  '/offline.html',
   '/static/js/bundle.js',
   '/static/css/main.css',
-  '/manifest.json',
-  '/favicon.ico',
-  // Only cache the Create Contact page for offline functionality
-  '/contacts/create'
+  '/manifest.json'
 ];
 
-// Cache strategy types
-const CACHE_STRATEGIES = {
-  CACHE_FIRST: 'cache-first',
-  NETWORK_FIRST: 'network-first',
-  CACHE_ONLY: 'cache-only',
-  NETWORK_ONLY: 'network-only'
-};
-
-// Install event
+// Install event - cache resources
 self.addEventListener('install', (event) => {
-  console.log('Service Worker installing...');
-  
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Caching app shell...');
-        // Try to cache all URLs, but don't fail if some fail
-        return Promise.allSettled(
-          CACHE_URLS.map(url => 
-            cache.add(url).catch(error => {
-              console.warn(`Failed to cache ${url}:`, error);
-              return null;
-            })
-          )
-        );
-      })
-      .then(() => {
-        console.log('App shell caching completed');
-        return self.skipWaiting();
+        console.log('Service Worker: Caching files');
+        return cache.addAll(urlsToCache);
       })
       .catch((error) => {
-        console.error('Failed to cache app shell:', error);
-        // Still skip waiting even if caching fails
-        return self.skipWaiting();
+        console.log('Service Worker: Cache failed', error);
       })
   );
 });
 
-// Activate event
+// Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker activating...');
-  
   event.waitUntil(
-    Promise.all([
-      self.clients.claim(),
-      // Clean up old caches
       caches.keys().then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
             if (cacheName !== CACHE_NAME) {
-              console.log('Deleting old cache:', cacheName);
+            console.log('Service Worker: Deleting old cache', cacheName);
               return caches.delete(cacheName);
             }
           })
         );
       })
-    ])
   );
 });
 
-// Fetch event for offline handling
+// Fetch event - serve from cache when offline
 self.addEventListener('fetch', (event) => {
-  const request = event.request;
-  const url = new URL(request.url);
-
-  // Handle API requests for customers
-  if (url.pathname.includes('/api/admin/customers') && 
-      request.method === 'POST') {
-    event.respondWith(handleCustomerCreation(request));
-    return;
+  // Only handle requests for the contact page and related resources
+  if (event.request.url.includes('/contact') || 
+      event.request.url.includes('/static/') ||
+      event.request.url.includes('/manifest.json')) {
+    
+    event.respondWith(
+      caches.match(event.request)
+        .then((response) => {
+          // Return cached version or fetch from network
+          if (response) {
+            console.log('Service Worker: Serving from cache', event.request.url);
+            return response;
+          }
+          
+          return fetch(event.request).then((response) => {
+            // Don't cache if not a valid response
+            if (!response || response.status !== 200 || response.type !== 'basic') {
+              return response;
+            }
+            
+            // Clone the response
+            const responseToCache = response.clone();
+            
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, responseToCache);
+              });
+            
+            return response;
+          });
+        })
+        .catch(() => {
+          // If both cache and network fail, show offline page
+          if (event.request.destination === 'document') {
+            return caches.match('/offline.html');
+          }
+        })
+    );
   }
-
-  // Handle navigation requests (HTML pages) - CRITICAL for offline support
-  if (request.mode === 'navigate') {
-    event.respondWith(handleNavigationRequest(request));
-    return;
-  }
-
-  // Handle static assets (JS, CSS, images, etc.)
-  event.respondWith(handleStaticAssetRequest(request));
 });
 
-// Handle navigation requests - only cache Create Contact page
-async function handleNavigationRequest(request) {
-  const url = new URL(request.url);
-  
-  // Only handle caching for Create Contact page
-  if (url.pathname === '/contacts/create') {
-    try {
-      // Try network first for Create Contact page
-      const networkResponse = await fetch(request);
-      
-      // If successful, cache the response
-      if (networkResponse.ok) {
-        const cache = await caches.open(CACHE_NAME);
-        cache.put(request, networkResponse.clone());
-      }
-      
-      return networkResponse;
-    } catch (error) {
-      console.log('Network failed for Create Contact page, trying cache:', request.url);
-      
-      // Network failed, try to serve from cache for Create Contact page only
-      const cachedResponse = await caches.match(request);
-      if (cachedResponse) {
-        console.log('Serving cached Create Contact page:', request.url);
-        return cachedResponse;
-      }
-      
-      // Return offline message for Create Contact page
-      return new Response(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Harmony Admin - Create Contact (Offline)</title>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <style>
-              body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
-              .offline { color: #666; }
-              .retry { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
-            </style>
-          </head>
-          <body>
-            <h1>Harmony Admin - Create Contact</h1>
-            <p class="offline">You're currently offline</p>
-            <p>You can still create contacts offline. They will be synced when you're back online.</p>
-            <button class="retry" onclick="location.reload()">Retry</button>
-          </body>
-        </html>
-      `, {
-        status: 200,
-        headers: { 'Content-Type': 'text/html' }
-      });
-    }
-  }
-  
-  // For all other pages, always try network first (no caching)
-  try {
-    return await fetch(request);
-  } catch (error) {
-    console.log('Network failed for page:', request.url);
-    // For non-Create Contact pages, just let the error propagate
-    throw error;
-  }
-}
-
-// Handle static asset requests with cache-first strategy
-async function handleStaticAssetRequest(request) {
-  try {
-    // Try cache first for static assets
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
+// Handle API requests for contact form
+self.addEventListener('fetch', (event) => {
+  if (event.request.url.includes('/api/admin/customers') && 
+      event.request.method === 'POST') {
     
-    // If not in cache, try network
-    const networkResponse = await fetch(request);
-    
-    // Cache successful responses
-    if (networkResponse.ok) {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(request, networkResponse.clone());
-    }
-    
-    return networkResponse;
-  } catch (error) {
-    console.log('Failed to fetch static asset:', request.url);
-    
-    // For images, return a placeholder
-    if (request.destination === 'image') {
-      return new Response('', {
-        status: 200,
-        statusText: 'OK',
-        headers: { 'Content-Type': 'image/svg+xml' }
-      });
-    }
-    
-    // For other assets, return a basic error
-    throw error;
-  }
-}
-
-// Handle customer creation requests
-async function handleCustomerCreation(request) {
-  try {
-    // Try to make the request online first
-    const response = await fetch(request);
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // If network request succeeds, return response
     return response;
-  } catch (error) {
-    console.log('Network error, storing customer offline:', error);
-    
-    // If offline, store the customer data for later sync
-    const customerData = await request.clone().json();
-    await storeOfflineCustomer(customerData);
-    
-    // Return a success response to the frontend
+        })
+        .catch(() => {
+          // If network fails, store in IndexedDB for later sync
+          return event.request.clone().text().then((body) => {
+            const customerData = JSON.parse(body);
+            
+            // Store in IndexedDB for offline sync
     return new Response(JSON.stringify({
       success: true,
+              message: 'Contact stored offline and will be synced when online',
       offline: true,
-      message: 'Customer stored offline and will be synced when online'
+              data: customerData
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });
-  }
-}
-
-// Store customer data offline
-async function storeOfflineCustomer(customerData) {
-  const db = await openIndexedDB();
-  const transaction = db.transaction(['customers'], 'readwrite');
-  const store = transaction.objectStore('customers');
-  
-  const offlineCustomer = {
-    ...customerData,
-    id: Date.now() + Math.random(), // Temporary ID
-    createdAt: new Date().toISOString(),
-    offline: true,
-    synced: false
-  };
-  
-  await store.add(offlineCustomer);
-  
-  // Update sync queue
-  await updateSyncQueue('create', offlineCustomer);
-  
-  console.log('Customer stored offline:', offlineCustomer);
-}
-
-// Update sync queue
-async function updateSyncQueue(action, data) {
-  const db = await openIndexedDB();
-  const transaction = db.transaction(['syncQueue'], 'readwrite');
-  const store = transaction.objectStore('syncQueue');
-  
-  const syncItem = {
-    id: Date.now() + Math.random(),
-    action,
-    data,
-    timestamp: new Date().toISOString(),
-    attempts: 0
-  };
-  
-  await store.add(syncItem);
-}
-
-// Open IndexedDB
-function openIndexedDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open('HarmonyAdminDB', 1);
-    
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-    
-    request.onupgradeneeded = (event) => {
-      const db = event.target.result;
-      
-      // Create customers store
-      if (!db.objectStoreNames.contains('customers')) {
-        const customerStore = db.createObjectStore('customers', { keyPath: 'id' });
-        customerStore.createIndex('synced', 'synced', { unique: false });
-        customerStore.createIndex('offline', 'offline', { unique: false });
-      }
-      
-      // Create sync queue store
-      if (!db.objectStoreNames.contains('syncQueue')) {
-        const syncStore = db.createObjectStore('syncQueue', { keyPath: 'id' });
-        syncStore.createIndex('timestamp', 'timestamp', { unique: false });
-      }
-    };
-  });
-}
-
-// Background sync for when connection is restored
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'customer-sync') {
-    event.waitUntil(syncOfflineCustomers());
-  }
-});
-
-// Sync offline customers when online
-async function syncOfflineCustomers() {
-  try {
-    const db = await openIndexedDB();
-    const transaction = db.transaction(['syncQueue'], 'readonly');
-    const store = transaction.objectStore('syncQueue');
-    const syncItems = await store.getAll();
-    
-    for (const item of syncItems) {
-      if (item.action === 'create') {
-        try {
-          const response = await fetch('/api/admin/customers', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(item.data)
           });
-          
-          if (response.ok) {
-            // Remove from sync queue
-            const deleteTransaction = db.transaction(['syncQueue'], 'readwrite');
-            const deleteStore = deleteTransaction.objectStore('syncQueue');
-            await deleteStore.delete(item.id);
-            
-            // Remove customer from IndexedDB after successful sync
-            const customerTransaction = db.transaction(['customers'], 'readwrite');
-            const customerStore = customerTransaction.objectStore('customers');
-            await customerStore.delete(item.data.id);
-            
-            console.log('Customer synced and removed from offline storage:', item.data);
-          }
-        } catch (error) {
-          console.error('Failed to sync customer:', error);
-          // Increment attempts counter
-          item.attempts += 1;
-          if (item.attempts < 3) {
-            const updateTransaction = db.transaction(['syncQueue'], 'readwrite');
-            const updateStore = updateTransaction.objectStore('syncQueue');
-            await updateStore.put(item);
-          }
-        }
-      }
-    }
-  } catch (error) {
-    console.error('Sync process failed:', error);
-  }
-}
-
-// Listen for online/offline events
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'ONLINE_STATUS_CHANGED') {
-    if (event.data.isOnline) {
-      // Trigger sync when coming online
-      syncOfflineCustomers();
-    }
+        })
+    );
   }
 });

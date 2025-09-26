@@ -53,8 +53,6 @@ import {
   Business as BusinessIcon,
 } from '@mui/icons-material';
 import API from '../../BackendAPi/ApiProvider';
-import { useNetwork } from '../../contexts/NetworkContext';
-import OfflineMessage from './OfflineMessage';
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
@@ -62,7 +60,6 @@ const Customers = () => {
   const [error, setError] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState(null);
-  const { isOnline } = useNetwork();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -119,15 +116,9 @@ const Customers = () => {
   const [expandedRows, setExpandedRows] = useState(new Set());
   const theme = useTheme();
 
-  const handleRetry = () => {
-    window.location.reload();
-  };
-
   useEffect(() => {
-    if (isOnline) {
-      fetchCustomers();
-    }
-  }, [page, limit, filters, isOnline]);
+    fetchCustomers();
+  }, [page, limit, filters]);
 
   useEffect(() => {
     fetchSourcesAndLabels();
@@ -366,7 +357,6 @@ const Customers = () => {
     });
   };
 
-  // Customers page works normally - no offline restrictions
 
   if (loading) {
     return (

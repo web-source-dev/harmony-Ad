@@ -14,24 +14,15 @@ import {
   Alert,
 } from '@mui/material';
 import API from '../../BackendAPi/ApiProvider';
-import { useNetwork } from '../../contexts/NetworkContext';
-import OfflineMessage from './OfflineMessage';
 
 const AdminDonations = () => {
   const [donations, setDonations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { isOnline } = useNetwork();
-
-  const handleRetry = () => {
-    window.location.reload();
-  };
 
   useEffect(() => {
-    if (isOnline) {
-      fetchDonations();
-    }
-  }, [isOnline]);
+    fetchDonations();
+  }, []);
 
   const fetchDonations = async () => {
     try {
@@ -75,7 +66,6 @@ const AdminDonations = () => {
     }
   };
 
-  // Donations page works normally - no offline restrictions
 
   if (loading) {
     return (
