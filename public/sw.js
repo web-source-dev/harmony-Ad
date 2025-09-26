@@ -1,6 +1,6 @@
 const CACHE_NAME = 'harmony-contact-v1';
 const urlsToCache = [
-  '/contact',
+  '/contact-intake',
   '/offline.html',
   '/static/js/bundle.js',
   '/static/css/main.css',
@@ -40,7 +40,7 @@ self.addEventListener('activate', (event) => {
 // Fetch event - serve from cache when offline
 self.addEventListener('fetch', (event) => {
   // Only handle requests for the contact page and related resources
-  if (event.request.url.includes('/contact') || 
+  if (event.request.url.includes('/contact-intake') || 
       event.request.url.includes('/static/') ||
       event.request.url.includes('/manifest.json')) {
     

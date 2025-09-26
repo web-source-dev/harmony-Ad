@@ -110,7 +110,7 @@ export const NetworkProvider = ({ children }) => {
         const cache = await caches.open('harmony-admin-v1');
         // Only cache the Create Contact page
         const importantPages = [
-          '/contacts/create'
+          '/contact-intake'
         ];
         
         // Cache only the Create Contact page
