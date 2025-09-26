@@ -96,11 +96,17 @@ class PublicOfflineStorage {
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction(['contacts'], 'readonly');
       const store = transaction.objectStore('contacts');
-      const index = store.index('synced');
-      const request = index.getAll(false); // Get all unsynced contacts
+      
+      // Get all contacts and filter them instead of using index
+      const request = store.getAll();
 
       request.onsuccess = () => {
-        resolve(request.result || []);
+        const allContacts = request.result || [];
+        // Filter for unsynced contacts
+        const unsyncedContacts = allContacts.filter(contact => 
+          contact && contact.synced === false
+        );
+        resolve(unsyncedContacts);
       };
 
       request.onerror = () => {
@@ -184,8 +190,8 @@ class PublicOfflineStorage {
         const contacts = request.result || [];
         const stats = {
           total: contacts.length,
-          synced: contacts.filter(c => c.synced).length,
-          unsynced: contacts.filter(c => !c.synced).length
+          synced: contacts.filter(c => c && c.synced === true).length,
+          unsynced: contacts.filter(c => c && c.synced === false).length
         };
         resolve(stats);
       };
@@ -209,7 +215,7 @@ class PublicOfflineStorage {
 
       request.onsuccess = () => {
         const contacts = request.result || [];
-        const syncedContacts = contacts.filter(contact => contact.synced === true);
+        const syncedContacts = contacts.filter(contact => contact && contact.synced === true);
         
         if (syncedContacts.length === 0) {
           console.log('No synced contacts to clean up');
