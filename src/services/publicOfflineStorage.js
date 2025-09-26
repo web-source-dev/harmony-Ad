@@ -197,6 +197,50 @@ class PublicOfflineStorage {
     });
   }
 
+  async cleanupSyncedContacts() {
+    if (!this.db) {
+      await this.init();
+    }
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['contacts'], 'readwrite');
+      const store = transaction.objectStore('contacts');
+      const request = store.getAll();
+
+      request.onsuccess = () => {
+        const contacts = request.result || [];
+        const syncedContacts = contacts.filter(contact => contact.synced === true);
+        
+        if (syncedContacts.length === 0) {
+          console.log('No synced contacts to clean up');
+          resolve(0);
+          return;
+        }
+
+        // Delete synced contacts
+        const deletePromises = syncedContacts.map(contact => {
+          return new Promise((resolveDelete, rejectDelete) => {
+            const deleteRequest = store.delete(contact.id);
+            deleteRequest.onsuccess = () => resolveDelete();
+            deleteRequest.onerror = () => rejectDelete(deleteRequest.error);
+          });
+        });
+
+        Promise.all(deletePromises)
+          .then(() => {
+            console.log(`Cleaned up ${syncedContacts.length} synced contacts`);
+            resolve(syncedContacts.length);
+          })
+          .catch(reject);
+      };
+
+      request.onerror = () => {
+        console.error('Failed to get contacts for cleanup');
+        reject(request.error);
+      };
+    });
+  }
+
   async clearAll() {
     if (!this.db) {
       await this.init();

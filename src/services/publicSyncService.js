@@ -9,11 +9,16 @@ class PublicSyncService {
     
     // Listen for online/offline events
     window.addEventListener('online', () => {
+      console.log('PublicSyncService: Network came online');
       this.isOnline = true;
-      this.startSync();
+      // Add a small delay to ensure network is stable
+      setTimeout(() => {
+        this.startSync();
+      }, 1000);
     });
     
     window.addEventListener('offline', () => {
+      console.log('PublicSyncService: Network went offline');
       this.isOnline = false;
     });
   }
@@ -37,13 +42,33 @@ class PublicSyncService {
   }
 
   async startSync() {
-    if (this.syncInProgress || !this.isOnline) {
+    if (this.syncInProgress) {
+      console.log('Sync skipped - already in progress');
+      return;
+    }
+
+    if (!this.isOnline || !navigator.onLine) {
+      console.log('Sync skipped - offline');
       return;
     }
 
     try {
       this.syncInProgress = true;
       this.notifyListeners('syncStarted');
+
+      // Test network connectivity
+      try {
+        await fetch('/api/admin/stats', { 
+          method: 'HEAD',
+          cache: 'no-cache',
+          timeout: 5000 
+        });
+      } catch (error) {
+        console.log('Network connectivity test failed, skipping sync');
+        this.syncInProgress = false;
+        this.notifyListeners('syncError', { error: 'Network connectivity test failed' });
+        return;
+      }
 
       const unsyncedContacts = await publicOfflineStorage.getUnsyncedContacts();
       
@@ -55,6 +80,9 @@ class PublicSyncService {
       }
 
       console.log(`Syncing ${unsyncedContacts.length} contacts...`);
+
+      let syncedCount = 0;
+      let failedCount = 0;
 
       for (const contact of unsyncedContacts) {
         try {
@@ -71,16 +99,29 @@ class PublicSyncService {
             serverResponse: response.data
           });
           
+          syncedCount++;
           console.log(`Contact synced: ${contact.firstName} ${contact.lastName}`);
+          
+          // Small delay to prevent overwhelming the server
+          await new Promise(resolve => setTimeout(resolve, 100));
+          
         } catch (error) {
           console.error(`Failed to sync contact ${contact.id}:`, error);
+          failedCount++;
           // Continue with other contacts even if one fails
         }
       }
 
+      // Clean up synced contacts
+      await publicOfflineStorage.cleanupSyncedContacts();
+
       this.syncInProgress = false;
-      this.notifyListeners('syncCompleted');
-      console.log('Sync completed');
+      this.notifyListeners('syncCompleted', { 
+        synced: syncedCount, 
+        failed: failedCount,
+        total: unsyncedContacts.length 
+      });
+      console.log(`Sync completed: ${syncedCount} synced, ${failedCount} failed`);
     } catch (error) {
       console.error('Sync failed:', error);
       this.syncInProgress = false;
@@ -103,11 +144,32 @@ class PublicSyncService {
   }
 
   async forceSync() {
+    console.log('Force sync triggered');
     await this.startSync();
   }
 
   async clearOfflineData() {
     await publicOfflineStorage.clearAll();
+  }
+
+  // Check if we have unsynced data and trigger sync if online
+  async checkAndSync() {
+    if (!this.isOnline) {
+      console.log('Not online, skipping sync check');
+      return;
+    }
+
+    try {
+      const status = await this.getSyncStatus();
+      if (status.pendingSync > 0) {
+        console.log(`Found ${status.pendingSync} unsynced contacts, starting sync...`);
+        await this.startSync();
+      } else {
+        console.log('No unsynced contacts found');
+      }
+    } catch (error) {
+      console.error('Error checking sync status:', error);
+    }
   }
 }
 

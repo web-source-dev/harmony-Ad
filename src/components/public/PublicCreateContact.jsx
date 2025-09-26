@@ -119,6 +119,10 @@ const PublicCreateContact = () => {
           // Refresh offline customers list since customer was removed
           loadOfflineCustomers();
           break;
+        case 'syncError':
+          console.error('Sync error:', data.error);
+          setError('Failed to sync some contacts. They will be retried automatically.');
+          break;
         default:
           break;
       }
@@ -126,27 +130,61 @@ const PublicCreateContact = () => {
 
     publicSyncService.addSyncListener(handleSyncEvent);
 
-    // Listen for online/offline events
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
     // Cleanup
     return () => {
       publicSyncService.removeSyncListener(handleSyncEvent);
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
   // Auto-sync when coming online
   useEffect(() => {
     if (isOnline && syncStatus.offlineCustomers > 0) {
+      console.log('Network came online, triggering auto-sync...');
       handleAutoSync();
     }
   }, [isOnline, syncStatus.offlineCustomers]);
+
+  // Listen for online/offline events and trigger sync
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log('Network: Online - checking for unsynced data');
+      setIsOnline(true);
+      
+      // Use the improved sync service method
+      setTimeout(async () => {
+        try {
+          await publicSyncService.checkAndSync();
+        } catch (error) {
+          console.error('Failed to check and sync on online:', error);
+        }
+      }, 1000); // Small delay to ensure network is stable
+    };
+
+    const handleOffline = () => {
+      console.log('Network: Offline');
+      setIsOnline(false);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Set up periodic sync check (every 30 seconds when online)
+    const syncInterval = setInterval(async () => {
+      if (navigator.onLine) {
+        try {
+          await publicSyncService.checkAndSync();
+        } catch (error) {
+          console.error('Periodic sync check failed:', error);
+        }
+      }
+    }, 30000); // Check every 30 seconds
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      clearInterval(syncInterval);
+    };
+  }, []);
 
   const updateSyncStatus = async () => {
     try {
@@ -324,7 +362,7 @@ const PublicCreateContact = () => {
       {/* Header */}
       <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
         <Typography variant="h4" fontWeight="bold">
-          Contact Us
+        Form Submission
         </Typography>
         
         {/* Network Status and Offline Info */}
@@ -366,6 +404,17 @@ const PublicCreateContact = () => {
               variant="filled"
             />
           )}
+          
+          {isOnline && syncStatus.pendingSync > 0 && !syncStatus.isSyncing && (
+            <Chip
+              icon={<Sync />}
+              label={`${syncStatus.pendingSync} pending sync`}
+              color="warning"
+              variant="outlined"
+              onClick={handleAutoSync}
+              clickable
+            />
+          )}
         </Box>
       </Box>
 
@@ -373,8 +422,7 @@ const PublicCreateContact = () => {
         <Grid item xs={12} md={12}>
           <Card sx={{ borderRadius: '10px',border: '1px solid #000' }}>
             <CardHeader
-              title="Get In Touch"
-              subheader="Fill in your details below and we'll get back to you"
+              subheader="Fill in details below"
               sx={{
                 borderBottom: '1px solid #000',
               }}
@@ -385,11 +433,11 @@ const PublicCreateContact = () => {
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
-                      label="First Name"
                       value={formData.firstName}
                       onChange={(e) => handleInputChange('firstName', e.target.value)}
                       error={!!fieldErrors.firstName}
                       helperText={fieldErrors.firstName}
+                      placeholder="First Name"
                       disabled={isLoading}
                       sx={{
                         '& .MuiOutlinedInput-root': {
@@ -402,11 +450,11 @@ const PublicCreateContact = () => {
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
-                      label="Last Name"
                       value={formData.lastName}
                       onChange={(e) => handleInputChange('lastName', e.target.value)}
                       error={!!fieldErrors.lastName}
                       helperText={fieldErrors.lastName}
+                      placeholder="Last Name"
                       disabled={isLoading}
                       sx={{
                         '& .MuiOutlinedInput-root': {
@@ -419,12 +467,12 @@ const PublicCreateContact = () => {
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
-                      label="Email"
                       type="email"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       error={!!fieldErrors.email}
                       helperText={fieldErrors.email}
+                      placeholder="Email"
                       disabled={isLoading}
                       sx={{
                         '& .MuiOutlinedInput-root': {
@@ -437,11 +485,11 @@ const PublicCreateContact = () => {
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
-                      label="Phone Number"
                       value={formData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
                       error={!!fieldErrors.phone}
                       helperText={fieldErrors.phone}
+                      placeholder="Phone Number"
                       disabled={isLoading}
                       sx={{
                         '& .MuiOutlinedInput-root': {
@@ -481,7 +529,6 @@ const PublicCreateContact = () => {
                   <Button
                     type="submit"
                     variant="contained"
-                    startIcon={isLoading ? <CircularProgress size={20} /> : <Save />}
                     disabled={isLoading}
                     size="large"
                     sx={{
@@ -500,7 +547,7 @@ const PublicCreateContact = () => {
                       }
                     }}
                   >
-                    {isLoading ? 'Submitting...' : 'Submit Contact'}
+                    {isLoading ? 'Submitting...' : 'Submit'}
                   </Button>
                   
                   <Button

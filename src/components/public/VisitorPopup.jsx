@@ -136,11 +136,11 @@ const VisitorPopup = ({ open, onClose, onVisitorInfo }) => {
           <Box display="flex" flexDirection="column" gap={2}>
             <TextField
               fullWidth
-              label="Your Name"
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
               error={!!fieldErrors.name}
               helperText={fieldErrors.name}
+              placeholder="Name"
               disabled={isLoading}
               InputProps={{
                 startAdornment: <PersonIcon sx={{ mr: 1, color: 'text.secondary' }} />
@@ -154,12 +154,12 @@ const VisitorPopup = ({ open, onClose, onVisitorInfo }) => {
             
             <TextField
               fullWidth
-              label="Email Address"
               type="email"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
               error={!!fieldErrors.email}
               helperText={fieldErrors.email}
+              placeholder="Email"
               disabled={isLoading}
               InputProps={{
                 startAdornment: <EmailIcon sx={{ mr: 1, color: 'text.secondary' }} />
