@@ -87,16 +87,50 @@ class PublicSyncService {
       for (const contact of unsyncedContacts) {
         try {
           // Remove offline-specific fields
-          const { id, createdAt, synced, syncedAt, serverId, ...contactData } = contact;
+          const { id, createdAt, synced, syncedAt, serverId, visitorEmail, visitorName, ...contactData } = contact;
           
-          const response = await API.post('/api/admin/customers', contactData);
+          // Add visitor tracking data to the contact
+          const contactDataWithVisitor = {
+            ...contactData,
+            visitorEmail: visitorEmail,
+            visitorName: visitorName,
+            isOffline: true,
+            localId: contact.id
+          };
           
-          // Mark as synced
+          const response = await API.post('/api/admin/customers', contactDataWithVisitor);
+          console.log('Contact synced to server:', response.data);
+          
+          // Mark contact as synced
           await publicOfflineStorage.markContactSynced(contact.id, response.data);
+          
+          // Update visitor contact tracking if visitor info exists
+          if (visitorEmail) {
+            try {
+              console.log('Updating visitor contact tracking for:', visitorEmail);
+              await publicOfflineStorage.markVisitorContactSynced(
+                visitorEmail, 
+                contact.id, 
+                response.data.customer._id || response.data.customer.id
+              );
+              
+              // Also update server-side visitor tracking
+              await API.post('/api/visitor/mark-offline-synced', {
+                visitorEmail: visitorEmail,
+                localId: contact.id,
+                serverContactId: response.data.customer._id || response.data.customer.id
+              });
+              console.log('Server-side visitor tracking updated');
+            } catch (visitorError) {
+              console.error('Failed to update visitor contact tracking:', visitorError);
+              // Don't fail the contact sync if visitor tracking fails
+            }
+          }
           
           this.notifyListeners('contactSynced', {
             contact: contact,
-            serverResponse: response.data
+            serverResponse: response.data,
+            visitorEmail: visitorEmail
           });
           
           syncedCount++;
@@ -150,6 +184,61 @@ class PublicSyncService {
 
   async clearOfflineData() {
     await publicOfflineStorage.clearAll();
+  }
+
+  // Sync visitor info to server
+  async syncVisitorInfo(visitorData) {
+    if (!this.isOnline || !navigator.onLine) {
+      console.log('Not online, storing visitor info locally');
+      try {
+        await publicOfflineStorage.storeVisitorInfo(visitorData);
+        return { success: false, message: 'Stored locally, will sync when online' };
+      } catch (error) {
+        console.error('Failed to store visitor info locally:', error);
+        return { success: false, error: error.message };
+      }
+    }
+
+    try {
+      const response = await API.post('/api/visitor/find-or-create', {
+        name: visitorData.name,
+        email: visitorData.email,
+        source: 'public-form',
+        referrer: document.referrer || null,
+        userAgent: navigator.userAgent || null
+      });
+
+      // Store the server response locally as well
+      await publicOfflineStorage.storeVisitorInfo({
+        ...visitorData,
+        serverId: response.data.visitor.id,
+        sessionId: response.data.visitor.sessionId
+      });
+
+      return { 
+        success: true, 
+        visitor: response.data.visitor,
+        message: 'Visitor info synced successfully'
+      };
+    } catch (error) {
+      console.error('Failed to sync visitor info:', error);
+      
+      // Store locally as fallback
+      try {
+        await publicOfflineStorage.storeVisitorInfo(visitorData);
+        return { 
+          success: false, 
+          message: 'Server sync failed, stored locally',
+          error: error.message
+        };
+      } catch (localError) {
+        console.error('Failed to store visitor info locally as fallback:', localError);
+        return { 
+          success: false, 
+          error: `Server and local storage failed: ${error.message}` 
+        };
+      }
+    }
   }
 
   // Check if we have unsynced data and trigger sync if online

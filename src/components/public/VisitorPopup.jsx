@@ -15,6 +15,7 @@ import {
   Person as PersonIcon,
   Email as EmailIcon,
 } from '@mui/icons-material';
+import publicSyncService from '../../services/publicSyncService';
 
 const VisitorPopup = ({ open, onClose, onVisitorInfo }) => {
   const [formData, setFormData] = useState({
@@ -78,17 +79,32 @@ const VisitorPopup = ({ open, onClose, onVisitorInfo }) => {
       setIsLoading(true);
       setError('');
       
-      // Save visitor info to localStorage
-      const visitorInfo = {
+      // Create visitor data
+      const visitorData = {
         name: formData.name.trim(),
         email: formData.email.trim().toLowerCase(),
         visitedAt: new Date().toISOString(),
+        sessionId: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       };
       
-      localStorage.setItem('harmony_visitor_info', JSON.stringify(visitorInfo));
+      // Try to sync visitor info to server (online/offline aware)
+      console.log('Syncing visitor info to server:', visitorData);
+      const syncResult = await publicSyncService.syncVisitorInfo(visitorData);
+      console.log('Sync result:', syncResult);
+      
+      if (syncResult.success) {
+        console.log('Visitor info synced successfully:', syncResult.visitor);
+        visitorData.serverId = syncResult.visitor.id;
+        visitorData.sessionId = syncResult.visitor.sessionId;
+      } else {
+        console.log('Visitor info stored locally:', syncResult.message);
+      }
+      
+      // Save visitor info to localStorage as backup
+      localStorage.setItem('harmony_visitor_info', JSON.stringify(visitorData));
       
       // Call the callback with visitor info
-      onVisitorInfo(visitorInfo);
+      onVisitorInfo(visitorData);
       
       // Reset form
       setFormData({
