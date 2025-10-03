@@ -11,6 +11,10 @@ export const NetworkProvider = ({ children }) => {
   });
   const [wasOffline, setWasOffline] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [cacheVersion, setCacheVersion] = useState(() => {
+    // Generate a unique cache version for this session
+    return `harmony-admin-v${Date.now()}`;
+  });
 
   useEffect(() => {
     // Check if we have cached content (indicating offline capability)
@@ -29,7 +33,48 @@ export const NetworkProvider = ({ children }) => {
       setIsInitialized(true);
     };
 
-    checkOfflineCapability();
+    // Auto-clear cache for online users on page load (not refresh)
+    const handleCacheManagement = async () => {
+      if (navigator.onLine && 'caches' in window) {
+        try {
+          console.log('User is online - clearing cache and setting up fresh cache');
+          
+          // Clear all existing caches
+          const cacheNames = await caches.keys();
+          await Promise.all(
+            cacheNames.map(cacheName => {
+              console.log(`Deleting cache: ${cacheName}`);
+              return caches.delete(cacheName);
+            })
+          );
+          
+          console.log('All caches cleared successfully');
+          
+          // Set up fresh cache after 5 seconds
+          setTimeout(async () => {
+            if (navigator.onLine) {
+              console.log('Setting up fresh cache after 5 seconds...');
+              await preCacheImportantPages();
+            }
+          }, 5000);
+          
+        } catch (error) {
+          console.error('Failed to clear cache:', error);
+        }
+      } else {
+        console.log('User is offline - preserving cache');
+        await checkOfflineCapability();
+      }
+    };
+
+    // Only clear cache on initial page load, not on refresh
+    const isPageRefresh = performance.getEntriesByType('navigation')[0]?.type === 'reload';
+    if (!isPageRefresh) {
+      handleCacheManagement();
+    } else {
+      console.log('Page refresh detected - preserving cache');
+      checkOfflineCapability();
+    }
 
     const handleOnline = () => {
       console.log('Network: Online');
@@ -66,7 +111,7 @@ export const NetworkProvider = ({ children }) => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Register service worker
+    // Register service worker with cache version
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js')
         .then((registration) => {
@@ -78,9 +123,18 @@ export const NetworkProvider = ({ children }) => {
         .then((registration) => {
           console.log('Service Worker is ready');
           
-          // Pre-cache important pages when online
-          if (navigator.onLine) {
-            preCacheImportantPages();
+          // Send cache version to service worker
+          if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({
+              type: 'CACHE_VERSION_UPDATE',
+              version: cacheVersion
+            });
+          }
+          
+          // Pre-cache important pages when online (only if not refreshing)
+          if (navigator.onLine && !isPageRefresh) {
+            // Don't pre-cache immediately if we just cleared cache
+            // The cache will be set up after 5 seconds in handleCacheManagement
           }
           
           // Register background sync
@@ -105,9 +159,12 @@ export const NetworkProvider = ({ children }) => {
 
   // Pre-cache only the Create Contact page when online
   const preCacheImportantPages = async () => {
-    if ('caches' in window) {
+    if ('caches' in window && navigator.onLine) {
       try {
-        const cache = await caches.open('harmony-admin-v1');
+        // Use the current cache version
+        const cache = await caches.open(cacheVersion);
+        console.log(`Using cache version: ${cacheVersion}`);
+        
         // Only cache the Create Contact page
         const importantPages = [
           '/contact-intake'
@@ -117,10 +174,18 @@ export const NetworkProvider = ({ children }) => {
         await Promise.allSettled(
           importantPages.map(async (page) => {
             try {
-              const response = await fetch(page);
+              const response = await fetch(page, {
+                cache: 'no-cache', // Always fetch fresh content
+                headers: {
+                  'Cache-Control': 'no-cache',
+                  'Pragma': 'no-cache'
+                }
+              });
               if (response.ok) {
-                await cache.put(page, response);
-                console.log(`Pre-cached Create Contact page: ${page}`);
+                // Clone the response to avoid consuming it
+                const responseClone = response.clone();
+                await cache.put(page, responseClone);
+                console.log(`Pre-cached Create Contact page: ${page} with version ${cacheVersion}`);
               }
             } catch (error) {
               console.warn(`Failed to pre-cache Create Contact page:`, error);
@@ -128,7 +193,7 @@ export const NetworkProvider = ({ children }) => {
           })
         );
         
-        console.log('Create Contact page pre-cached successfully');
+        console.log(`Create Contact page pre-cached successfully with version ${cacheVersion}`);
       } catch (error) {
         console.error('Failed to pre-cache Create Contact page:', error);
       }
@@ -138,7 +203,8 @@ export const NetworkProvider = ({ children }) => {
   const value = {
     isOnline,
     wasOffline,
-    isInitialized
+    isInitialized,
+    cacheVersion
   };
 
   return (

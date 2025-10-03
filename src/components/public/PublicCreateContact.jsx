@@ -38,9 +38,11 @@ import {
 import API from '../../BackendAPi/ApiProvider';
 import publicOfflineStorage from '../../services/publicOfflineStorage';
 import publicSyncService from '../../services/publicSyncService';
+import { useNetwork } from '../../contexts/NetworkContext';
 import VisitorPopup from './VisitorPopup';
 
 const PublicCreateContact = () => {
+  const { isOnline: networkIsOnline, cacheVersion } = useNetwork();
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   
   const [formData, setFormData] = useState({
@@ -88,6 +90,11 @@ const PublicCreateContact = () => {
       try {
         console.log('Initializing public offline storage...');
         await publicOfflineStorage.init();
+        
+        // Set cache version for sync service
+        if (cacheVersion) {
+          publicSyncService.setCacheVersion(cacheVersion);
+        }
         
         // Check if visitor info exists in localStorage
         const storedVisitorInfo = localStorage.getItem('harmony_visitor_info');
@@ -158,7 +165,7 @@ const PublicCreateContact = () => {
     return () => {
       publicSyncService.removeSyncListener(handleSyncEvent);
     };
-  }, []);
+  }, [cacheVersion]);
 
   // Auto-sync when coming online
   useEffect(() => {

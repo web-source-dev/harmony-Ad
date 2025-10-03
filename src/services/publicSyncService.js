@@ -6,6 +6,7 @@ class PublicSyncService {
     this.listeners = [];
     this.isOnline = navigator.onLine;
     this.syncInProgress = false;
+    this.cacheVersion = null;
     
     // Listen for online/offline events
     window.addEventListener('online', () => {
@@ -21,6 +22,12 @@ class PublicSyncService {
       console.log('PublicSyncService: Network went offline');
       this.isOnline = false;
     });
+  }
+
+  // Set cache version for this session
+  setCacheVersion(version) {
+    this.cacheVersion = version;
+    console.log('PublicSyncService: Cache version set to', version);
   }
 
   addSyncListener(callback) {
