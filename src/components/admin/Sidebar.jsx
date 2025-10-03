@@ -19,6 +19,7 @@ import {
   PersonAdd,
   Analytics as AnalyticsIcon,
   VideoLibrary as VideoIcon,
+  Email as EmailIcon,
   Logout as LogoutIcon,
 } from '@mui/icons-material';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -59,6 +60,11 @@ const menuItems = [
     text: 'Donations', 
     icon: DonationIcon, 
     path: '/donations' 
+  },
+  { 
+    text: 'Custom Email', 
+    icon: EmailIcon, 
+    path: '/custom-email' 
   },
 ];
 
@@ -203,7 +209,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, isMobile }) => {
         <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
           Engagement
         </ListSubheader>
-        {menuItems.slice(6, 7).map((item) => (
+        {menuItems.slice(6, 8).map((item) => (
           <ListItem
             button
             key={item.text}
