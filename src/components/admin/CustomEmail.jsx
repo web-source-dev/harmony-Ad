@@ -27,6 +27,8 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -34,12 +36,17 @@ import {
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
   Close as CloseIcon,
+  Edit as EditIcon,
 } from '@mui/icons-material';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import API from '../../BackendAPi/ApiProvider';
 
 const CustomEmail = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const [showMobilePreview, setShowMobilePreview] = useState(false);
+
   const [formData, setFormData] = useState({
     title: '',
     subject: '',
@@ -84,7 +91,7 @@ const CustomEmail = () => {
       logo5: 'https://ci3.googleusercontent.com/meips/ADKq_NZE2iDg0YVuvLgZzHQpYQ2Mmrhz52RnzoPjIdaXEKniJCHZpt4JL1rDiC81D2BvrEBZ11qMej2VrKpQ0GlrWK7xWDRzvrwhizIIhzITYpZvMj7kPX4rgQQhdyU6OEhqccsK_kaR7Jnmvuz99sr4xBB_-TknnaBW1x-8wrTqosYNTM4CY2V8uMpVH1AgPp3xKuc4Z1RQ0bZ95sT1BGtiLHcR5WqIH_j8dbTR_gg6-RL-UUD3_LlITw=s0-d-e1-ft#https://static.wixstatic.com/media/bb6757_af4f47b402d0463e88b8b053ea04609e~mv2.png/v1/fit/w_700,h_2000,al_c,q_85/bb6757_af4f47b402d0463e88b8b053ea04609e~mv2.png',
       logo6: 'https://ci3.googleusercontent.com/meips/ADKq_Nbp1AoVxqG62yYSsTr1yO498rqpZuB3_QlPoJiJUVAEJBR7Lf7zUjeLK8TwU38lYvUSIJyKF-71c5rrYMol9jwyx0tgWxpmleOzJSy8Mv_CHOaobD3-Ve73xnN6c7rKhTIKI-EhkgBOcm7NkUR_dDclY06kVSOPYLLwoqUgGkfV_D5kOz2ZkHkKejUZUcFptkZa9YWBf2EGU0TPWhicHi0XE91daYVklYF389KthT-ToHpUhJeH8w=s0-d-e1-ft#https://static.wixstatic.com/media/bb6757_64b718fb08b5495b9c94938d7a690ac0~mv2.png/v1/fit/w_700,h_2000,al_c,q_85/bb6757_64b718fb08b5495b9c94938d7a690ac0~mv2.png',
       logo7: 'https://ci3.googleusercontent.com/meips/ADKq_NZb3GbJdH8mj3l28VAf5ojrvXirDyye7YAVvVBCA57tXTbRdgebHMjsdE-feFtZs_Vy0BibZ-363pm4Y-S2v-Iwtksn_lO_caxqxBO5l5O7twgV9EVcxOIyfOYcY5gbUOiIzQ1p4dYSk_mIEdkWR6pmpMXqlk-tRbInsej5pC2aSYMQzanuxK1be7PN5Cx7MJ5JcKSaldOSqn8fitQSxGoSAbjQ1l4keuxFlgwVn5BbZwz-Ws6Xeg=s0-d-e1-ft#https://static.wixstatic.com/media/bb6757_cf9876b510634dc6a9bc17b70b931e13~mv2.png/v1/fit/w_700,h_2000,al_c,q_85/bb6757_cf9876b510634dc6a9bc17b70b931e13~mv2.png',
-      logo8: 'https://ci3.googleusercontent.com/meips/ADKq_NYIweYs9-6wy-Km6RYY2TKcmVMtbt8eRjXQSJF_FECB5rJq67yHQiMMXR9de0UxvsipGp9-HfS2LItmbmtqp-RqBZP5vxF02xoGiG5w3rW1QKfW0wyO4AR9F9T_qjRrgxC6V62HmDQv1KM0hUIDiTP9Gc3Pxg6DfOF8Lf5PfpGHsvNmCuqHdNgLtRx94SfECUezp-FpYGGictBA9FxsNhgLqWDLTli8XDnHhBEYKzrsTdgA7N5B3A=s0-d-e1-ft#https://static.wixstatic.com/media/bb6757_9b301230ffdb44e98b8a1eead3d31976~mv2.jpg/v1/fit/w_700,h_2000,al_c,q_85/bb6757_9b301230ffdb44e98b8a1eead3d31976~mv2.jpg',
+      logo8: 'https://res.cloudinary.com/dcvqytwuq/image/upload/v1759744678/Screenshot_2025-10-06_175425_ntlvzt.png',
       link1: 'https://thenewyorkinjurylawfirm.com/',
       link2: 'https://www.nysenate.gov/senators/joseph-p-addabbo-jr',
       link3: 'https://www.governor.ny.gov/',
@@ -266,7 +273,6 @@ const CustomEmail = () => {
       color: #333; 
       margin: 0; 
       padding: 0; 
-      background-color: #f8f5ee; 
     }
     a{
       color:rgb(0, 0, 0) !important;
@@ -285,7 +291,7 @@ const CustomEmail = () => {
     }
     .header { 
       background: white; 
-      padding: 30px; 
+      padding: isMobile ? 0px : 30px; 
       text-align: center; 
       border-bottom: 1px solid #9ba5a5; 
       width: 100%;
@@ -441,7 +447,7 @@ const CustomEmail = () => {
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 15px;
+      gap: 5px;
       margin-bottom: 25px;
       width: 100%;
       text-align: center;
@@ -476,11 +482,11 @@ const CustomEmail = () => {
     }
     .contact-section { 
       display: flex; 
-      justify-content: center; 
+      justify-content: start; 
       align-items: center; 
       margin-top: 25px;
       padding-top: 20px; 
-      max-width: 600px;
+      max-width: 400px;
       margin-left: auto;
       margin-right: auto;
       width: 100%;
@@ -490,7 +496,6 @@ const CustomEmail = () => {
       font-size: 14px; 
       color: #000 !important; 
       font-family: Arial, sans-serif;
-      margin-left: 80px;
     }
     .site-link { 
       text-align: right; 
@@ -654,7 +659,7 @@ const CustomEmail = () => {
           </td>
           <td class="funders-logo">
             <a href="${fundersData.link8 || '#'}" target="_blank" class="funders-logo-link">
-              <img src="${fundersData.logo8 || 'https://ci3.googleusercontent.com/meips/ADKq_NYIweYs9-6wy-Km6RYY2TKcmVMtbt8eRjXQSJF_FECB5rJq67yHQiMMXR9de0UxvsipGp9-HfS2LItmbmtqp-RqBZP5vxF02xoGiG5w3rW1QKfW0wyO4AR9F9T_qjRrgxC6V62HmDQv1KM0hUIDiTP9Gc3Pxg6DfOF8Lf5PfpGHsvNmCuqHdNgLtRx94SfECUezp-FpYGGictBA9FxsNhgLqWDLTli8XDnHhBEYKzrsTdgA7N5B3A=s0-d-e1-ft#https://static.wixstatic.com/media/bb6757_9b301230ffdb44e98b8a1eead3d31976~mv2.jpg/v1/fit/w_700,h_2000,al_c,q_85/bb6757_9b301230ffdb44e98b8a1eead3d31976~mv2.jpg'}" alt="Sponsor 8" class="funders-logo-img">
+              <img src="${fundersData.logo8 || 'https://res.cloudinary.com/dcvqytwuq/image/upload/v1759744678/Screenshot_2025-10-06_175425_ntlvzt.png'}" alt="Sponsor 8" class="funders-logo-img">
             </a>
           </td>
           <td class="funders-logo">
@@ -701,7 +706,6 @@ const CustomEmail = () => {
           ${footerLocation}<br>
           ${footerEmail}
         </div>
-        <div class="vertical-line"></div>
         <div class="site-link">
           <a href="${siteLinkUrl}" class="site-link-text">${siteLinkText} <img src="/arrow.png" alt="Arrow" class="arrow-image"></a>
         </div>
@@ -721,12 +725,30 @@ const CustomEmail = () => {
   }
 
   return (
-    <Box sx={{ backgroundColor: '#f8f5ee', minHeight: '100vh', p: 3 }}>
-      <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
+    <Box sx={{ inHeight: '100vh'}}>
+      <Box display={`${isMobile && showMobilePreview ? 'none' : 'flex'}`} alignItems="center" justifyContent="space-between" mb={3}>
         <Typography variant="h4" fontWeight="bold" sx={{ color: '#2d3748' }}>
-          Custom Email
         </Typography>
         <Box display="flex" gap={2}>
+          {isMobile && (
+            <Button
+              variant="outlined"
+              startIcon={showMobilePreview ? <EditIcon /> : <PreviewIcon />}
+              onClick={() => setShowMobilePreview(!showMobilePreview)}
+              sx={{ 
+                borderColor: '#000', 
+                color: '#000',
+                borderRadius: '25px',
+                fontWeight: 'bold',
+                '&:hover': {
+                  borderColor: '#333',
+                  backgroundColor: '#f5f5f5'
+                }
+              }}
+            >
+              {showMobilePreview ? 'Edit' : 'Preview'}
+            </Button>
+          )}
           <Button
             variant="contained"
             startIcon={loading ? <CircularProgress size={20} /> : <SendIcon />}
@@ -761,13 +783,13 @@ const CustomEmail = () => {
 
        <Grid container spacing={3} sx={{ minHeight: '100vh' }}>
         {/* Left Panel - Form Inputs */}
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={6} sx={{ display: isMobile && showMobilePreview ? 'none' : 'block' }}>
           <Paper sx={{ 
-            p: 3, 
             height: 'fit-content',
-            backgroundColor: '#f8f5ee',
+            borderRadius: '8px',
+            boxShadow: 'none',
             border: '1px solid #9ba5a5',
-            borderRadius: '8px'
+            p:  isMobile ? 0 : 3,
           }}>
             <Typography variant="h6" gutterBottom sx={{ color: '#2d3748', fontWeight: 'bold' }}>
               Email Configuration
@@ -1393,32 +1415,58 @@ const CustomEmail = () => {
 
         {/* Right Panel - Live Preview */}
         <Grid item xs={12} md={6} sx={{ 
-          position: 'fixed', 
-          top: '70px',
-          right: '10px',
-          width: '40%',
+          width: isMobile ? '100%' : '40%',
           alignSelf: 'flex-start',
-          height: 'calc(100vh - 40px)',
-          overflow: 'hidden'
+          height: isMobile ? '100vh' : '300vh',
+          display: isMobile && !showMobilePreview ? 'none' : 'block'
         }}>
           <Paper sx={{ 
             height: '100%',
-            backgroundColor: '#f8f5ee',
+            boxShadow: 'none',
             zIndex: 1,
-            overflow: 'auto',
             display: 'flex',
             flexDirection: 'column'
-          }}>            
+          }}>
+            {isMobile && (
+              <Box sx={{ 
+                p: 2, 
+                backgroundColor: '#fff', 
+                borderBottom: '1px solid #9ba5a5',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}>
+                <Typography variant="h6" sx={{ color: '#2d3748', fontWeight: 'bold' }}>
+                  Email Preview
+                </Typography>
+                <Button
+                  variant="outlined"
+                  startIcon={<EditIcon />}
+                  onClick={() => setShowMobilePreview(false)}
+                  size="small"
+                  sx={{ 
+                    borderColor: '#000', 
+                    color: '#000',
+                    borderRadius: '20px',
+                    fontWeight: 'bold',
+                    '&:hover': {
+                      borderColor: '#333',
+                      backgroundColor: '#f5f5f5'
+                    }
+                  }}
+                >
+                  Edit
+                </Button>
+              </Box>
+            )}
             <Box
               sx={{
                 flex: 1,
                 overflow: 'hidden',
-                backgroundColor: '#f8f5ee',
                 '& iframe': {
                   width: '100%',
                   height: '100%',
                   border: 'none',
-                  backgroundColor: '#f8f5ee'
                 }
               }}
             >
