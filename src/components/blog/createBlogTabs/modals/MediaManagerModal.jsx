@@ -168,10 +168,10 @@ const MediaManagerModal = ({
     // Validate files
     const validFiles = files.filter(file => {
       const isValidImage = file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024; // 5MB for images
-      const isValidVideo = file.type.startsWith('video/') && file.size <= 5 * 1024 * 1024 * 1024; // 5GB for videos
+      const isValidVideo = file.type.startsWith('video/') && file.size <= 100 * 1024 * 1024; // 100MB for videos
       
       if (!isValidImage && !isValidVideo) {
-        setError(`Invalid file: ${file.name}. Images must be < 5MB, videos < 5GB`);
+        setError(`Invalid file: ${file.name}. Images must be under 5MB, videos must be under 100MB`);
         return false;
       }
       return true;
@@ -534,6 +534,13 @@ const MediaManagerModal = ({
               {selectionMode === 'single' ? 'Single Selection' : `Multiple Selection (Max: ${maxSelection})`}
             </Typography>
           </Box>
+
+          {/* File size limit information */}
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <Typography variant="body2">
+              <strong>Upload Limits:</strong> Images must be under 5MB • Videos must be under 100MB
+            </Typography>
+          </Alert>
 
           {uploading && (
             <Box sx={{ width: '100%' }}>

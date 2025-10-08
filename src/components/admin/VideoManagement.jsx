@@ -36,10 +36,10 @@ const VideoManagement = () => {
 
   const currentDate = getCurrentDate();
   
-  // Available time options
+  // Available time options (12 PM noon and 6 PM evening - New York time)
   const timeOptions = [
-    { value: '06:00', label: '6:00 AM' },
-    { value: '23:59', label: '11:59 PM' }
+    { value: '12:00', label: '12:00 PM (Noon)' },
+    { value: '18:00', label: '6:00 PM (Evening)' }
   ];
 
   const [formData, setFormData] = useState({
@@ -162,7 +162,7 @@ const VideoManagement = () => {
           </Typography>
         </Box>
         <Typography variant="body1" color="text.secondary">
-          Add new videos to the system with scheduling. Videos will be saved with pending status by default.
+          Schedule videos for automatic publication at 12:00 PM (noon) or 6:00 PM (evening) New York time. Videos are saved with pending status and automatically published at the scheduled time.
         </Typography>
       </Paper>
 
@@ -237,6 +237,12 @@ const VideoManagement = () => {
                 Select Video
               </Typography>
               
+              <Alert severity="info" sx={{ mb: 2 }}>
+                <Typography variant="body2">
+                  <strong>Important:</strong> Please upload videos under 100MB using the Media Manager. Videos will be automatically published at the scheduled time (12:00 PM or 6:00 PM New York time).
+                </Typography>
+              </Alert>
+              
               {selectedVideo ? (
                 <Paper 
                   sx={{ 
@@ -290,8 +296,11 @@ const VideoManagement = () => {
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                     Click to select video from Media Manager
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 0.5 }}>
                     Supported formats: MP4, MOV, AVI, etc.
+                  </Typography>
+                  <Typography variant="caption" color="primary.main" sx={{ fontWeight: 600 }}>
+                    Videos must be under 100MB
                   </Typography>
                 </Paper>
               )}
