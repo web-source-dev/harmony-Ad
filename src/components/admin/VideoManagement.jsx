@@ -15,19 +15,26 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  Chip,
+  useTheme
 } from '@mui/material';
 import {
   VideoLibrary,
   Save,
-  CloudUpload
+  CloudUpload,
+  List as ListIcon
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import MediaManagerModal from '../blog/createBlogTabs/modals/MediaManagerModal';
 import API from '../../BackendAPi/ApiProvider';
 import { useNetwork } from '../../contexts/NetworkContext';
 import OfflineMessage from './OfflineMessage';
 
 const VideoManagement = () => {
+  const navigate = useNavigate();
+  const theme = useTheme();
+  
   // Get current date for default value
   const getCurrentDate = () => {
     const now = new Date();
@@ -126,7 +133,7 @@ const VideoManagement = () => {
         scheduledTime: formData.scheduledTime
       });
 
-      setSuccess('Video saved successfully!');
+      setSuccess(`Video scheduled successfully! It will be published at ${formatTime(formData.scheduledTime)} NY time on ${formatDate(formData.scheduledDate)}.`);
       
       // Reset form
       setFormData({
@@ -150,22 +157,25 @@ const VideoManagement = () => {
     setSuccess('');
   };
 
+  // Format time for display
+  const formatTime = (timeString) => {
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  // Format date for display
+  const formatDate = (dateString) => {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString(undefined, options);
+  };
+
   // Video Management page works normally - no offline restrictions
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <VideoLibrary sx={{ mr: 2, fontSize: 32, color: 'primary.main' }} />
-          <Typography variant="h4" component="h1" sx={{ fontWeight: 600 }}>
-            Video Management
-          </Typography>
-        </Box>
-        <Typography variant="body1" color="text.secondary">
-          Schedule videos for automatic publication at 12:00 PM (noon) or 6:00 PM (evening) New York time. Videos are saved with pending status and automatically published at the scheduled time.
-        </Typography>
-      </Paper>
-
+    <Box sx={{ p: 0 }}>
       <Card>
         <CardContent sx={{ p: 3 }}>
           <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
@@ -238,11 +248,14 @@ const VideoManagement = () => {
               </Typography>
               
               <Alert severity="info" sx={{ mb: 2 }}>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                  <strong>Important:</strong> Please upload videos under 100MB using the Media Manager.
+                </Typography>
                 <Typography variant="body2">
-                  <strong>Important:</strong> Please upload videos under 100MB using the Media Manager. Videos will be automatically published at the scheduled time (12:00 PM or 6:00 PM New York time).
+                  Videos will be automatically published at the scheduled time (12:00 PM noon or 6:00 PM evening New York time).
                 </Typography>
               </Alert>
-              
+                            
               {selectedVideo ? (
                 <Paper 
                   sx={{ 
@@ -364,8 +377,30 @@ const VideoManagement = () => {
         </Alert>
       </Snackbar>
 
-      <Snackbar open={!!success} autoHideDuration={3000} onClose={handleCloseSnackbar}>
-        <Alert severity="success" onClose={handleCloseSnackbar}>
+      <Snackbar 
+        open={!!success} 
+        autoHideDuration={6000} 
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          severity="success" 
+          onClose={handleCloseSnackbar}
+          action={
+            <Button 
+              color="inherit" 
+              size="small" 
+              onClick={() => {
+                handleCloseSnackbar();
+                navigate('/videos/manage');
+              }}
+              sx={{ textTransform: 'none', fontWeight: 600 }}
+            >
+              View All
+            </Button>
+          }
+          sx={{ width: '100%', maxWidth: '600px' }}
+        >
           {success}
         </Alert>
       </Snackbar>

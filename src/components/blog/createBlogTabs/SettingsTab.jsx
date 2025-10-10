@@ -52,34 +52,33 @@ const SettingsTab = ({
     }
   }, [status]);
   
-  // Format date for the datetime-local input (preserve local timezone)
+  // Format date for the date input (date only, no time)
   const formatDateForInput = (date) => {
     if (!date) return '';
     const d = new Date(date);
-    // Get local timezone offset in minutes
-    const timezoneOffset = d.getTimezoneOffset();
-    // Adjust for timezone offset to get local time
-    const localDate = new Date(d.getTime() - (timezoneOffset * 60000));
-    return localDate.toISOString().slice(0, 16);
+    // Format as YYYY-MM-DD for date input
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
   
-  // Handle schedule date change (preserve local timezone)
+  // Handle schedule date change (always set to 12 PM New York time)
   const handleScheduleChange = (e) => {
     if (!e.target.value) {
       setScheduledFor(null);
       return;
     }
     
-    // Create date from the datetime-local input value
-    // The input value is in local time, so we need to handle it properly
+    // Parse the date input value (YYYY-MM-DD format)
     const inputValue = e.target.value;
-    const [datePart, timePart] = inputValue.split('T');
-    const [year, month, day] = datePart.split('-').map(Number);
-    const [hours, minutes] = timePart.split(':').map(Number);
+    const [year, month, day] = inputValue.split('-').map(Number);
     
-    // Create a new Date object in local timezone
-    const localDate = new Date(year, month - 1, day, hours, minutes);
-    setScheduledFor(localDate);
+    // Create a date object for the selected date at 12:00 PM
+    // We'll create it as a local date and let the backend handle the New York timezone conversion
+    const date = new Date(year, month - 1, day, 12, 0, 0, 0);
+    
+    setScheduledFor(date);
   };
 
   // Handle schedule checkbox change
@@ -186,34 +185,44 @@ const SettingsTab = ({
             
             {/* Schedule Checkbox and Input */}
             <Box sx={{ mb: 3 }}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={showSchedule}
-                    onChange={handleScheduleCheckboxChange}
-                    color="primary"
-                  />
-                }
-                label={
-                  <Typography 
-                    variant="subtitle2" 
-                    sx={{ 
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 0.5
-                    }}
-                  >
-                    <Schedule fontSize="small" />
-                    Schedule Publication
-                  </Typography>
-                }
-              />
+              <Box sx={{ 
+                p: 2, 
+                borderRadius: '10px',
+                backgroundColor: showSchedule 
+                  ? (theme.palette.mode === 'dark' ? 'rgba(33, 150, 243, 0.08)' : 'rgba(33, 150, 243, 0.05)')
+                  : 'transparent',
+                border: `1px solid ${showSchedule ? theme.palette.primary.main + '40' : theme.palette.divider}`
+              }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={showSchedule}
+                      onChange={handleScheduleCheckboxChange}
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <Typography 
+                      variant="subtitle2" 
+                      sx={{ 
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        fontWeight: 600
+                      }}
+                    >
+                      <Schedule fontSize="small" />
+                      Schedule Publication
+                    </Typography>
+                  }
+                />
+              </Box>
               
               {showSchedule && (
                 <Box sx={{ mt: 2 }}>
                   <TextField
-                    label="Publish Date & Time"
-                    type="datetime-local"
+                    label="Publish Date"
+                    type="date"
                     value={formatDateForInput(scheduledFor)}
                     onChange={handleScheduleChange}
                     fullWidth
@@ -233,9 +242,17 @@ const SettingsTab = ({
                       ),
                     }}
                   />
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                    If set, the post will automatically change to published status at the specified time.
-                  </Typography>
+                  <Box sx={{ 
+                    mt: 1.5, 
+                    p: 2, 
+                    borderRadius: '8px',
+                    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(33, 150, 243, 0.08)' : 'rgba(33, 150, 243, 0.05)',
+                    border: `1px solid ${theme.palette.primary.main}40`
+                  }}>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+                      Blog will be automatically published at <strong>12:00 PM (noon) New York time</strong> on the selected date.
+                    </Typography>
+                  </Box>
                 </Box>
               )}
             </Box>

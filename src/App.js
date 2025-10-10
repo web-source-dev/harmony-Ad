@@ -13,7 +13,7 @@ import AdminDonations from './components/admin/Donations';
 import AdminContacts from './components/admin/Customers';
 import CreateContact from './components/admin/CreateCustomer';
 import Analytics from './components/admin/Analytics';
-import VideoManagement from './components/admin/VideoManagement';
+import VideoManagementTabs from './components/admin/VideoManagementTabs';
 import CustomEmail from './components/admin/CustomEmail';
 import Login from './components/admin/Login';
 import ProtectedRoute from './components/admin/ProtectedRoute';
@@ -59,7 +59,7 @@ const App = () => {
               <Route path="donations" element={<AdminDonations />} />
               <Route path="contacts" element={<AdminContacts />} />
               <Route path="contacts/create" element={<CreateContact />} />
-              <Route path="social-media" element={<VideoManagement />} />
+              <Route path="social-media" element={<VideoManagementTabs />} />
               <Route path="custom-email" element={<CustomEmail />} />
               <Route path="blog/create" element={<CreateBlog />} />
               <Route path="blog/edit/:id" element={<CreateBlog />} />

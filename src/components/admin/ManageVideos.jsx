@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
+  Box,
   Container,
   Paper,
   Typography,
@@ -19,9 +20,7 @@ import {
   TablePagination,
   Chip,
   useTheme,
-  Box,
   Fade,
-  Divider,
   Avatar,
   Tooltip,
   TextField,
@@ -29,104 +28,107 @@ import {
   CircularProgress,
   Card,
   Skeleton,
-  Switch,
   Tabs,
   Tab,
-  Badge
+  Badge,
+  CardMedia,
+  CardContent,
+  Grid
 } from '@mui/material';
-import { Edit, Delete, Add, Search, Visibility, FilterList, Sort, Article } from '@mui/icons-material';
+import { 
+  Delete, 
+  Search, 
+  Visibility, 
+  VideoLibrary,
+  Schedule,
+  CheckCircle,
+  Pending,
+  CalendarToday,
+  AccessTime,
+  Refresh,
+  ArrowBack,
+  Add
+} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import API from '../../BackendAPi/ApiProvider';
 
-const ManageBlog = () => {
+const ManageVideos = () => {
   const navigate = useNavigate();
-  
   const theme = useTheme();
-  const [blogs, setBlogs] = useState([]);
-  const [filteredBlogs, setFilteredBlogs] = useState([]);
+  const [videos, setVideos] = useState([]);
+  const [filteredVideos, setFilteredVideos] = useState([]);
   const [error, setError] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [blogToDelete, setBlogToDelete] = useState(null);
+  const [videoToDelete, setVideoToDelete] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentTab, setCurrentTab] = useState('all');
+  const [videoPreviewOpen, setVideoPreviewOpen] = useState(false);
+  const [previewVideo, setPreviewVideo] = useState(null);
 
   const tabs = [
-    { value: 'all', label: 'All', color: 'default' },
-    { value: 'published', label: 'Published', color: 'success' },
-    { value: 'scheduled', label: 'Scheduled', color: 'warning' },
-    { value: 'draft', label: 'Draft', color: 'default' },
-    { value: 'archived', label: 'Archived', color: 'error' }
+    { value: 'all', label: 'All Videos', color: 'default' },
+    { value: 'pending', label: 'Scheduled', color: 'warning' },
+    { value: 'approved', label: 'Published', color: 'success' },
   ];
 
   useEffect(() => {
-    fetchBlogs();
+    fetchVideos();
   }, []);
 
   useEffect(() => {
-    let filtered = [...blogs];
+    let filtered = [...videos];
 
-    // First filter by tab
+    // Filter by tab
     if (currentTab !== 'all') {
-      filtered = filtered.filter(blog => blog.status === currentTab);
+      filtered = filtered.filter(video => video.status === currentTab);
     }
 
-    // Then filter by search term
+    // Filter by search term
     if (searchTerm.trim() !== '') {
-      filtered = filtered.filter(blog =>
-        blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (blog.description && blog.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        blog.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        blog.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (blog.writer?.name && blog.writer.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (blog.writer?.email && blog.writer.email.toLowerCase().includes(searchTerm.toLowerCase()))
+      filtered = filtered.filter(video =>
+        video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        video.caption.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        video.status.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    setFilteredBlogs(filtered);
-    setPage(0); // Reset to first page when filters change
-  }, [searchTerm, blogs, currentTab]);
+    setFilteredVideos(filtered);
+    setPage(0);
+  }, [searchTerm, videos, currentTab]);
 
-  const fetchBlogs = async () => {
+  const fetchVideos = async () => {
     setLoading(true);
     try {
-      const response = await API.get('/api/blogs/all');
-      // Sort blogs by published date (newest first)
-      const sortedBlogs = response.data.sort((a, b) => {
-        // If both have publishedAt dates, compare them
-        if (a.publishedAt && b.publishedAt) {
-          return new Date(b.publishedAt) - new Date(a.publishedAt);
-        }
-        // If only one has publishedAt, prioritize the one with publishedAt
-        if (a.publishedAt && !b.publishedAt) return -1;
-        if (!a.publishedAt && b.publishedAt) return 1;
-        // If neither has publishedAt, sort by createdAt
+      const response = await API.get('/api/video/all');
+      const sortedVideos = response.data.sort((a, b) => {
         return new Date(b.createdAt) - new Date(a.createdAt);
       });
-      setBlogs(sortedBlogs);
-      setFilteredBlogs(sortedBlogs);
+      setVideos(sortedVideos);
+      setFilteredVideos(sortedVideos);
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || 'Failed to fetch videos');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteClick = (blog) => {
-    setBlogToDelete(blog);
+  const handleDeleteClick = (video) => {
+    setVideoToDelete(video);
     setDeleteDialogOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
     try {
-      await API.delete(`/api/blogs/${blogToDelete._id}`);
-      setBlogs(blogs.filter(blog => blog._id !== blogToDelete._id));
-      setFilteredBlogs(filteredBlogs.filter(blog => blog._id !== blogToDelete._id));
+      await API.delete(`/api/video/${videoToDelete._id}`);
+      setVideos(videos.filter(video => video._id !== videoToDelete._id));
+      setFilteredVideos(filteredVideos.filter(video => video._id !== videoToDelete._id));
       setDeleteDialogOpen(false);
+      setVideoToDelete(null);
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || 'Failed to delete video');
     }
   };
 
@@ -139,17 +141,13 @@ const ManageBlog = () => {
     setPage(0);
   };
 
-  const handleToggleStatus = async (blog) => {
-    try {
-      await API.put(`/api/blogs/${blog._id}/toggleStatus`, { isActive: !blog.isActive });
-      fetchBlogs();
-    } catch (err) {
-      setError(err.message);
-    }
+  const handlePreviewVideo = (video) => {
+    setPreviewVideo(video);
+    setVideoPreviewOpen(true);
   };
 
-  const getTruncatedTitle = (title) => {
-    return title.length > 50 ? `${title.substring(0, 50)}...` : title;
+  const getTruncatedText = (text, maxLength = 50) => {
+    return text.length > maxLength ? `${text.substring(0, maxLength)}...` : text;
   };
 
   const formatDate = (dateString) => {
@@ -157,27 +155,22 @@ const ManageBlog = () => {
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
-  const getBlogDate = (blog) => {
-    if (blog.publishedAt) {
-      return { date: blog.publishedAt, label: 'Published' };
-    } else if (blog.status === 'scheduled' && blog.scheduledFor) {
-      return { date: blog.scheduledFor, label: 'Scheduled for', showTime: true };
-    } else if (blog.status === 'archived') {
-      return { date: blog.createdAt, label: 'Archived' };
-    } else {
-      return { date: blog.createdAt, label: 'Created' };
-    }
+  const formatTime = (timeString) => {
+    // Convert 24-hour format to 12-hour with AM/PM
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'published':
+      case 'approved':
         return 'success';
-      case 'scheduled':
+      case 'pending':
         return 'warning';
-      case 'draft':
-        return 'default';
-      case 'archived':
+      case 'rejected':
         return 'error';
       default:
         return 'default';
@@ -186,22 +179,31 @@ const ManageBlog = () => {
 
   const getStatusLabel = (status) => {
     switch (status) {
-      case 'published':
+      case 'approved':
         return 'Published';
-      case 'scheduled':
+      case 'pending':
         return 'Scheduled';
-      case 'draft':
-        return 'Draft';
-      case 'archived':
-        return 'Archived';
+      case 'rejected':
+        return 'Rejected';
       default:
         return status;
     }
   };
 
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'approved':
+        return <CheckCircle fontSize="small" />;
+      case 'pending':
+        return <Pending fontSize="small" />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <Fade in={true} timeout={800}>
-      <Container maxWidth="xl" sx={{ py: 4 }}>
+      <Container maxWidth="xl" sx={{ py: 0 }}>
         <Card 
           elevation={0} 
           sx={{ 
@@ -213,76 +215,6 @@ const ManageBlog = () => {
             overflow: 'hidden',
           }}
         >
-          <Box 
-            sx={{ 
-              mb: 4,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              flexWrap: 'wrap',
-              gap: 2
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: 48,
-                  height: 48,
-                  borderRadius: '12px',
-                  background: `linear-gradient(135deg, ${theme.palette.primary.light}, ${theme.palette.primary.main})`,
-                  boxShadow: `0 4px 12px ${theme.palette.primary.main}40`,
-                }}
-              >
-                <Article sx={{ color: '#fff', fontSize: 28 }} />
-              </Box>
-              <Box>
-                <Typography 
-                  variant="h4" 
-                  sx={{
-                    fontWeight: 700,
-                    color: theme.palette.text.primary,
-                    fontSize: { xs: '1.75rem', md: '2.125rem' }
-                  }}
-                >
-                  Manage Blogs
-                </Typography>
-                <Typography 
-                  variant="body1" 
-                  color="textSecondary"
-                  sx={{ mt: 0.5 }}
-                >
-                  Create, edit, and manage all your blog posts
-                </Typography>
-              </Box>
-            </Box>
-            
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<Add />}
-              onClick={() => navigate('/blog/create')}
-              sx={{ 
-                borderRadius: '10px',
-                px: 3,
-                py: 1.2,
-                textTransform: 'none',
-                fontSize: '0.95rem',
-                fontWeight: 600,
-                boxShadow: `0 4px 12px ${theme.palette.primary.main}40`,
-                background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
-                transition: 'all 0.3s ease',
-                '&:hover': {
-                  boxShadow: `0 6px 16px ${theme.palette.primary.main}60`,
-                  transform: 'translateY(-2px)',
-                }
-              }}
-            >
-              Create New Blog
-            </Button>
-          </Box>
           
           {error && (
             <Alert 
@@ -298,6 +230,74 @@ const ManageBlog = () => {
             >
               {error}
             </Alert>
+          )}
+
+          {/* Video Statistics */}
+          {!loading && (
+            <Box sx={{ mb: 3 }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={4}>
+                  <Paper
+                    sx={{
+                      p: 2,
+                      borderRadius: '12px',
+                      border: `1px solid ${theme.palette.divider}`,
+                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255, 193, 7, 0.08)' : 'rgba(255, 193, 7, 0.05)'
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <Schedule sx={{ color: theme.palette.warning.main }} />
+                      <Typography variant="subtitle2" fontWeight={600}>
+                        Scheduled Videos
+                      </Typography>
+                    </Box>
+                    <Typography variant="h4" fontWeight={700} sx={{ color: theme.palette.warning.main }}>
+                      {videos.filter(v => v.status === 'pending').length}
+                    </Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Paper
+                    sx={{
+                      p: 2,
+                      borderRadius: '12px',
+                      border: `1px solid ${theme.palette.divider}`,
+                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(76, 175, 80, 0.08)' : 'rgba(76, 175, 80, 0.05)'
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <CheckCircle sx={{ color: theme.palette.success.main }} />
+                      <Typography variant="subtitle2" fontWeight={600}>
+                        Published Videos
+                      </Typography>
+                    </Box>
+                    <Typography variant="h4" fontWeight={700} sx={{ color: theme.palette.success.main }}>
+                      {videos.filter(v => v.status === 'approved').length}
+                    </Typography>
+                  </Paper>
+                </Grid>
+                <Grid item xs={12} sm={4}>
+                  <Paper
+                    sx={{
+                      p: 2,
+                      borderRadius: '12px',
+                      border: `1px solid ${theme.palette.divider}`,
+                      backgroundColor: theme.palette.mode === 'dark' ? 'rgba(33, 150, 243, 0.08)' : 'rgba(33, 150, 243, 0.05)'
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                      <VideoLibrary sx={{ color: theme.palette.info.main }} />
+                      <Typography variant="subtitle2" fontWeight={600}>
+                        Total Videos
+                      </Typography>
+                    </Box>
+                    <Typography variant="h4" fontWeight={700} sx={{ color: theme.palette.info.main }}>
+                      {videos.length}
+                    </Typography>
+                  </Paper>
+                </Grid>
+              </Grid>
+            </Box>
           )}
           
           <Box sx={{ mb: 3 }}>
@@ -325,8 +325,8 @@ const ManageBlog = () => {
                       <Badge
                         badgeContent={
                           tab.value === 'all'
-                            ? blogs.length
-                            : blogs.filter(blog => blog.status === tab.value).length
+                            ? videos.length
+                            : videos.filter(video => video.status === tab.value).length
                         }
                         color={tab.color}
                         sx={{
@@ -356,7 +356,7 @@ const ManageBlog = () => {
               }}
             >
               <TextField
-                placeholder="Search by title, description, status, category, writer name, or email..."
+                placeholder="Search by title, caption, or status..."
                 variant="outlined"
                 size="small"
                 value={searchTerm}
@@ -401,7 +401,7 @@ const ManageBlog = () => {
                         borderBottom: `1px solid ${theme.palette.divider}`
                       }}
                     >
-                      Title
+                      Video
                     </TableCell>
                     <TableCell
                       sx={{
@@ -412,7 +412,7 @@ const ManageBlog = () => {
                         borderBottom: `1px solid ${theme.palette.divider}`
                       }}
                     >
-                      Writer
+                      Caption
                     </TableCell>
                     <TableCell
                       sx={{
@@ -423,7 +423,7 @@ const ManageBlog = () => {
                         borderBottom: `1px solid ${theme.palette.divider}`
                       }}
                     >
-                      Date
+                      Scheduled For
                     </TableCell>
                     <TableCell 
                       sx={{ 
@@ -435,17 +435,6 @@ const ManageBlog = () => {
                       }}
                     >
                       Status
-                    </TableCell>
-                    <TableCell 
-                      sx={{ 
-                        fontWeight: 600,
-                        fontSize: '0.95rem',
-                        color: theme.palette.text.primary,
-                        py: 2,
-                        borderBottom: `1px solid ${theme.palette.divider}`
-                      }}
-                    >
-                      Visibility
                     </TableCell>
                     <TableCell 
                       align="right"
@@ -469,13 +458,10 @@ const ManageBlog = () => {
                           <Skeleton animation="wave" height={40} width="80%" />
                         </TableCell>
                         <TableCell>
-                          <Skeleton animation="wave" height={40} width={120} />
+                          <Skeleton animation="wave" height={40} width="80%" />
                         </TableCell>
                         <TableCell>
                           <Skeleton animation="wave" height={40} width={120} />
-                        </TableCell>
-                        <TableCell>
-                          <Skeleton animation="wave" height={40} width={80} />
                         </TableCell>
                         <TableCell>
                           <Skeleton animation="wave" height={40} width={80} />
@@ -485,9 +471,9 @@ const ManageBlog = () => {
                         </TableCell>
                       </TableRow>
                     ))
-                  ) : filteredBlogs.length === 0 ? (
+                  ) : filteredVideos.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} align="center" sx={{ py: 5 }}>
+                      <TableCell colSpan={5} align="center" sx={{ py: 5 }}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, my: 4 }}>
                           <Avatar 
                             sx={{ 
@@ -497,23 +483,23 @@ const ManageBlog = () => {
                               color: theme.palette.text.secondary
                             }}
                           >
-                            <Article sx={{ fontSize: 40 }} />
+                            <VideoLibrary sx={{ fontSize: 40 }} />
                           </Avatar>
                           <Typography variant="h6" color="textSecondary">
-                            No blog posts found
+                            No videos found
                           </Typography>
                           <Typography variant="body2" color="textSecondary" sx={{ maxWidth: 300, textAlign: 'center' }}>
-                            {searchTerm ? "No matching blogs found for your search. Try different keywords." : "Start creating blog posts to share your content with the world."}
+                            {searchTerm ? "No matching videos found for your search. Try different keywords." : "Start scheduling videos to share your content."}
                           </Typography>
                         </Box>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredBlogs
+                    filteredVideos
                       .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                      .map((blog) => (
+                      .map((video) => (
                         <TableRow 
-                          key={blog._id}
+                          key={video._id}
                           sx={{
                             '&:hover': {
                               backgroundColor: theme.palette.action.hover
@@ -530,104 +516,43 @@ const ManageBlog = () => {
                               borderBottom: `1px solid ${theme.palette.divider}`
                             }}
                           >
-                            <Tooltip title={blog.title} placement="top-start" arrow>
+                            <Tooltip title={video.title} placement="top-start" arrow>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                {blog.image ? (
-                                  <Avatar
-                                    src={`${blog.image}`}
-                                    variant="rounded"
-                                    sx={{
-                                      width: 40,
-                                      height: 40,
-                                      borderRadius: '8px',
-                                      border: `1px solid ${theme.palette.divider}`
-                                    }}
-                                  />
-                                ) : (
-                                  <Avatar
-                                    variant="rounded"
-                                    sx={{
-                                      width: 40,
-                                      height: 40,
-                                      bgcolor: `${theme.palette.primary.main}20`,
-                                      color: theme.palette.primary.main,
-                                      borderRadius: '8px'
-                                    }}
-                                  >
-                                    <Article />
-                                  </Avatar>
-                                )}
+                                <Avatar
+                                  variant="rounded"
+                                  sx={{
+                                    width: 50,
+                                    height: 50,
+                                    bgcolor: `${theme.palette.secondary.main}20`,
+                                    color: theme.palette.secondary.main,
+                                    borderRadius: '8px'
+                                  }}
+                                >
+                                  <VideoLibrary />
+                                </Avatar>
                                 <Box sx={{ maxWidth: 'calc(100% - 60px)' }}>
                                   <Typography
                                     noWrap
                                     fontWeight={500}
                                     sx={{ display: 'block' }}
                                   >
-                                    {getTruncatedTitle(blog.title)}
+                                    {getTruncatedText(video.title)}
                                   </Typography>
-                                  {blog.description && (
-                                    <Typography
-                                      variant="caption"
-                                      color="textSecondary"
-                                      noWrap
-                                      sx={{ display: 'block' }}
-                                    >
-                                      {blog.description.substring(0, 60)}...
-                                    </Typography>
-                                  )}
                                 </Box>
                               </Box>
                             </Tooltip>
                           </TableCell>
                           <TableCell
                             sx={{
-                              color: theme.palette.text.primary,
+                              color: theme.palette.text.secondary,
                               py: 2.5,
-                              borderBottom: `1px solid ${theme.palette.divider}`
+                              borderBottom: `1px solid ${theme.palette.divider}`,
+                              maxWidth: '300px'
                             }}
                           >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                              {blog.writer?.image ? (
-                                <Avatar
-                                  src={blog.writer.image}
-                                  sx={{
-                                    width: 32,
-                                    height: 32,
-                                    borderRadius: '50%',
-                                    border: `1px solid ${theme.palette.divider}`
-                                  }}
-                                />
-                              ) : (
-                                <Avatar
-                                  sx={{
-                                    width: 32,
-                                    height: 32,
-                                    bgcolor: `${theme.palette.secondary.main}20`,
-                                    color: theme.palette.secondary.main,
-                                    fontSize: '0.875rem',
-                                    fontWeight: 600
-                                  }}
-                                >
-                                  {blog.writer?.name ? blog.writer.name.charAt(0).toUpperCase() : 'W'}
-                                </Avatar>
-                              )}
-                              <Box>
-                                <Typography
-                                  variant="body2"
-                                  fontWeight={500}
-                                  sx={{ display: 'block', lineHeight: 1.2 }}
-                                >
-                                  {blog.writer?.name || 'Unknown Writer'}
-                                </Typography>
-                                <Typography
-                                  variant="caption"
-                                  color="textSecondary"
-                                  sx={{ display: 'block', lineHeight: 1.2 }}
-                                >
-                                  {blog.writer?.email || 'No email'}
-                                </Typography>
-                              </Box>
-                            </Box>
+                            <Typography variant="body2" noWrap>
+                              {getTruncatedText(video.caption, 60)}
+                            </Typography>
                           </TableCell>
                           <TableCell
                             sx={{
@@ -637,33 +562,26 @@ const ManageBlog = () => {
                             }}
                           >
                             <Box>
-                              <Typography variant="body2" color="textSecondary" sx={{ fontSize: '0.75rem', mb: 0.5 }}>
-                                {getBlogDate(blog).label}
-                              </Typography>
-                              <Typography variant="body2" fontWeight={500}>
-                                {formatDate(getBlogDate(blog).date)}
-                              </Typography>
-                              {getBlogDate(blog).showTime && (
-                                <Chip 
-                                  label="12 PM NY" 
-                                  size="small" 
-                                  sx={{ 
-                                    mt: 0.5,
-                                    height: '18px',
-                                    fontSize: '0.7rem',
-                                    bgcolor: theme.palette.info.light,
-                                    color: 'white',
-                                    fontWeight: 600
-                                  }} 
-                                />
-                              )}
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                                <CalendarToday fontSize="small" sx={{ fontSize: '0.875rem' }} />
+                                <Typography variant="body2" fontWeight={500}>
+                                  {formatDate(video.scheduledDate)}
+                                </Typography>
+                              </Box>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                <AccessTime fontSize="small" sx={{ fontSize: '0.875rem' }} />
+                                <Typography variant="body2" color="text.secondary">
+                                  {formatTime(video.scheduledTime)} NY
+                                </Typography>
+                              </Box>
                             </Box>
                           </TableCell>
                           <TableCell sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}>
                             <Chip
-                              label={getStatusLabel(blog.status)}
-                              color={getStatusColor(blog.status)}
+                              label={getStatusLabel(video.status)}
+                              color={getStatusColor(video.status)}
                               size="small"
+                              icon={getStatusIcon(video.status)}
                               sx={{ 
                                 borderRadius: '8px', 
                                 fontWeight: 500,
@@ -671,23 +589,9 @@ const ManageBlog = () => {
                               }}
                             />
                           </TableCell>
-                          <TableCell sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}>
-                            <Chip
-                              label={blog.isActive ? 'Visible' : 'Hidden'}
-                              color={blog.isActive ? 'success' : 'default'}
-                              size="small"
-                              variant="outlined"
-                              sx={{ 
-                                borderRadius: '8px', 
-                                fontWeight: 500,
-                                borderColor: blog.isActive ? 'success.main' : 'grey.400',
-                                color: blog.isActive ? 'success.main' : 'grey.600',
-                              }}
-                            />
-                          </TableCell>
                           <TableCell align="right" sx={{ borderBottom: `1px solid ${theme.palette.divider}` }}>
                             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                              <Tooltip title="View Blog">
+                              <Tooltip title="Preview Video">
                                 <IconButton
                                   size="small"
                                   sx={{
@@ -699,31 +603,13 @@ const ManageBlog = () => {
                                   }}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    window.open(`https://www.harmony4all.org/blog/${blog.slug}`, '_blank');
+                                    handlePreviewVideo(video);
                                   }}
                                 >
                                   <Visibility fontSize="small" />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title="Edit Blog">
-                                <IconButton
-                                  size="small"
-                                  sx={{
-                                    color: theme.palette.primary.main,
-                                    bgcolor: `${theme.palette.primary.main}15`,
-                                    '&:hover': {
-                                      bgcolor: `${theme.palette.primary.main}25`,
-                                    }
-                                  }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/blog/edit/${blog._id}`);
-                                  }}
-                                >
-                                  <Edit fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                              <Tooltip title="Delete Blog">
+                              <Tooltip title="Delete Video">
                                 <IconButton
                                   size="small"
                                   sx={{
@@ -735,20 +621,11 @@ const ManageBlog = () => {
                                   }}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    handleDeleteClick(blog);
+                                    handleDeleteClick(video);
                                   }}
                                 >
                                   <Delete fontSize="small" />
                                 </IconButton>
-                              </Tooltip>
-                              <Tooltip title={blog.isActive ? "Hide Blog" : "Show Blog"}>
-                                <Switch
-                                  checked={blog.isActive}
-                                  onChange={(e) => {
-                                    e.stopPropagation();
-                                    handleToggleStatus(blog);
-                                  }}
-                                />
                               </Tooltip>
                             </Box>
                           </TableCell>
@@ -759,10 +636,10 @@ const ManageBlog = () => {
               </Table>
             </TableContainer>
 
-            {filteredBlogs.length > 0 && (
+            {filteredVideos.length > 0 && (
               <TablePagination
                 component="div"
-                count={filteredBlogs.length}
+                count={filteredVideos.length}
                 page={page}
                 onPageChange={handleChangePage}
                 rowsPerPage={rowsPerPage}
@@ -775,6 +652,7 @@ const ManageBlog = () => {
             )}
           </Paper>
 
+          {/* Delete Confirmation Dialog */}
           <Dialog
             open={deleteDialogOpen}
             onClose={() => setDeleteDialogOpen(false)}
@@ -795,7 +673,7 @@ const ManageBlog = () => {
             </DialogTitle>
             <DialogContent>
               <Typography variant="body1">
-                Are you sure you want to delete the blog post "{blogToDelete?.title}"?
+                Are you sure you want to delete the video "{videoToDelete?.title}"?
               </Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                 This action cannot be undone.
@@ -832,10 +710,100 @@ const ManageBlog = () => {
               </Button>
             </DialogActions>
           </Dialog>
+
+          {/* Video Preview Dialog */}
+          <Dialog
+            open={videoPreviewOpen}
+            onClose={() => setVideoPreviewOpen(false)}
+            maxWidth="md"
+            fullWidth
+            PaperProps={{
+              sx: {
+                borderRadius: '16px',
+              }
+            }}
+          >
+            <DialogTitle sx={{ 
+              pb: 2,
+              fontWeight: 600,
+              color: theme.palette.text.primary,
+              borderBottom: `1px solid ${theme.palette.divider}`
+            }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <VideoLibrary color="secondary" />
+                Video Preview
+              </Box>
+            </DialogTitle>
+            <DialogContent sx={{ pt: 3 }}>
+              {previewVideo && (
+                <Box>
+                  <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                    {previewVideo.title}
+                  </Typography>
+                  
+                  <Card sx={{ mb: 2 }}>
+                    <CardMedia
+                      component="video"
+                      controls
+                      src={previewVideo.videoUrl}
+                      sx={{
+                        width: '100%',
+                        maxHeight: '400px',
+                        backgroundColor: '#000'
+                      }}
+                    />
+                    <CardContent>
+                      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                        Caption:
+                      </Typography>
+                      <Typography variant="body2" sx={{ mb: 2 }}>
+                        {previewVideo.caption}
+                      </Typography>
+                      
+                      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <CalendarToday fontSize="small" sx={{ color: theme.palette.text.secondary }} />
+                          <Typography variant="body2" color="text.secondary">
+                            {formatDate(previewVideo.scheduledDate)}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <AccessTime fontSize="small" sx={{ color: theme.palette.text.secondary }} />
+                          <Typography variant="body2" color="text.secondary">
+                            {formatTime(previewVideo.scheduledTime)} NY Time
+                          </Typography>
+                        </Box>
+                        <Chip
+                          label={getStatusLabel(previewVideo.status)}
+                          color={getStatusColor(previewVideo.status)}
+                          size="small"
+                          icon={getStatusIcon(previewVideo.status)}
+                        />
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </Box>
+              )}
+            </DialogContent>
+            <DialogActions sx={{ p: 2.5, pt: 1.5 }}>
+              <Button 
+                onClick={() => setVideoPreviewOpen(false)}
+                variant="contained"
+                sx={{
+                  borderRadius: '8px',
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  px: 3,
+                }}
+              >
+                Close
+              </Button>
+            </DialogActions>
+          </Dialog>
         </Card>
       </Container>
     </Fade>
   );
 };
 
-export default ManageBlog;
+export default ManageVideos;
