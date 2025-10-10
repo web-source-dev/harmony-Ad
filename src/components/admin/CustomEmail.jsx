@@ -91,7 +91,8 @@ const CustomEmail = () => {
       logo5: 'https://ci3.googleusercontent.com/meips/ADKq_NZE2iDg0YVuvLgZzHQpYQ2Mmrhz52RnzoPjIdaXEKniJCHZpt4JL1rDiC81D2BvrEBZ11qMej2VrKpQ0GlrWK7xWDRzvrwhizIIhzITYpZvMj7kPX4rgQQhdyU6OEhqccsK_kaR7Jnmvuz99sr4xBB_-TknnaBW1x-8wrTqosYNTM4CY2V8uMpVH1AgPp3xKuc4Z1RQ0bZ95sT1BGtiLHcR5WqIH_j8dbTR_gg6-RL-UUD3_LlITw=s0-d-e1-ft#https://static.wixstatic.com/media/bb6757_af4f47b402d0463e88b8b053ea04609e~mv2.png/v1/fit/w_700,h_2000,al_c,q_85/bb6757_af4f47b402d0463e88b8b053ea04609e~mv2.png',
       logo6: 'https://ci3.googleusercontent.com/meips/ADKq_Nbp1AoVxqG62yYSsTr1yO498rqpZuB3_QlPoJiJUVAEJBR7Lf7zUjeLK8TwU38lYvUSIJyKF-71c5rrYMol9jwyx0tgWxpmleOzJSy8Mv_CHOaobD3-Ve73xnN6c7rKhTIKI-EhkgBOcm7NkUR_dDclY06kVSOPYLLwoqUgGkfV_D5kOz2ZkHkKejUZUcFptkZa9YWBf2EGU0TPWhicHi0XE91daYVklYF389KthT-ToHpUhJeH8w=s0-d-e1-ft#https://static.wixstatic.com/media/bb6757_64b718fb08b5495b9c94938d7a690ac0~mv2.png/v1/fit/w_700,h_2000,al_c,q_85/bb6757_64b718fb08b5495b9c94938d7a690ac0~mv2.png',
       logo7: 'https://ci3.googleusercontent.com/meips/ADKq_NZb3GbJdH8mj3l28VAf5ojrvXirDyye7YAVvVBCA57tXTbRdgebHMjsdE-feFtZs_Vy0BibZ-363pm4Y-S2v-Iwtksn_lO_caxqxBO5l5O7twgV9EVcxOIyfOYcY5gbUOiIzQ1p4dYSk_mIEdkWR6pmpMXqlk-tRbInsej5pC2aSYMQzanuxK1be7PN5Cx7MJ5JcKSaldOSqn8fitQSxGoSAbjQ1l4keuxFlgwVn5BbZwz-Ws6Xeg=s0-d-e1-ft#https://static.wixstatic.com/media/bb6757_cf9876b510634dc6a9bc17b70b931e13~mv2.png/v1/fit/w_700,h_2000,al_c,q_85/bb6757_cf9876b510634dc6a9bc17b70b931e13~mv2.png',
-      logo8: 'https://res.cloudinary.com/dcvqytwuq/image/upload/v1759744678/Screenshot_2025-10-06_175425_ntlvzt.png',
+      logo8: 'https://res.cloudinary.com/dcvqytwuq/image/upload/v1760118756/koll2ak5y9cmgl5628i_lcudcj.png',
+      logo9: 'https://res.cloudinary.com/dcvqytwuq/image/upload/v1759744678/Screenshot_2025-10-06_175425_ntlvzt.png',
       link1: 'https://thenewyorkinjurylawfirm.com/',
       link2: 'https://www.nysenate.gov/senators/joseph-p-addabbo-jr',
       link3: 'https://www.governor.ny.gov/',
@@ -99,7 +100,8 @@ const CustomEmail = () => {
       link5: 'https://arts.ny.gov/our-mission',
       link6: 'https://www.nyc.gov/site/dcla/index.page',
       link7: 'https://www.nyfa.org/',
-      link8: 'https://www.harmony4all.org/sponsors'
+      link8: 'https://www.citizensnyc.org',
+      link9: 'https://www.harmony4all.org/sponsors'
     }
   });
 
@@ -650,7 +652,7 @@ const CustomEmail = () => {
             </a>
           </td>
         </tr>
-        <!-- Third Row: 2 logos -->
+        <!-- Third Row: 3 logos -->
         <tr class="funders-row">
           <td class="funders-logo">
             <a href="${fundersData.link7 || '#'}" target="_blank" class="funders-logo-link">
@@ -659,11 +661,13 @@ const CustomEmail = () => {
           </td>
           <td class="funders-logo">
             <a href="${fundersData.link8 || '#'}" target="_blank" class="funders-logo-link">
-              <img src="${fundersData.logo8 || 'https://res.cloudinary.com/dcvqytwuq/image/upload/v1759744678/Screenshot_2025-10-06_175425_ntlvzt.png'}" alt="Sponsor 8" class="funders-logo-img">
+              <img src="${fundersData.logo8 || 'https://res.cloudinary.com/dcvqytwuq/image/upload/v1760118756/koll2ak5y9cmgl5628i_lcudcj.png'}" alt="Sponsor 8" class="funders-logo-img">
             </a>
           </td>
           <td class="funders-logo">
-            <!-- Empty cell for spacing -->
+            <a href="${fundersData.link9 || '#'}" target="_blank" class="funders-logo-link">
+              <img src="${fundersData.logo9 || 'https://res.cloudinary.com/dcvqytwuq/image/upload/v1759744678/Screenshot_2025-10-06_175425_ntlvzt.png'}" alt="Sponsor 9" class="funders-logo-img">
+            </a>
           </td>
         </tr>
       </table>
