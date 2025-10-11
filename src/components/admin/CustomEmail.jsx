@@ -91,7 +91,7 @@ const CustomEmail = () => {
       logo5: 'https://ci3.googleusercontent.com/meips/ADKq_NZE2iDg0YVuvLgZzHQpYQ2Mmrhz52RnzoPjIdaXEKniJCHZpt4JL1rDiC81D2BvrEBZ11qMej2VrKpQ0GlrWK7xWDRzvrwhizIIhzITYpZvMj7kPX4rgQQhdyU6OEhqccsK_kaR7Jnmvuz99sr4xBB_-TknnaBW1x-8wrTqosYNTM4CY2V8uMpVH1AgPp3xKuc4Z1RQ0bZ95sT1BGtiLHcR5WqIH_j8dbTR_gg6-RL-UUD3_LlITw=s0-d-e1-ft#https://static.wixstatic.com/media/bb6757_af4f47b402d0463e88b8b053ea04609e~mv2.png/v1/fit/w_700,h_2000,al_c,q_85/bb6757_af4f47b402d0463e88b8b053ea04609e~mv2.png',
       logo6: 'https://ci3.googleusercontent.com/meips/ADKq_Nbp1AoVxqG62yYSsTr1yO498rqpZuB3_QlPoJiJUVAEJBR7Lf7zUjeLK8TwU38lYvUSIJyKF-71c5rrYMol9jwyx0tgWxpmleOzJSy8Mv_CHOaobD3-Ve73xnN6c7rKhTIKI-EhkgBOcm7NkUR_dDclY06kVSOPYLLwoqUgGkfV_D5kOz2ZkHkKejUZUcFptkZa9YWBf2EGU0TPWhicHi0XE91daYVklYF389KthT-ToHpUhJeH8w=s0-d-e1-ft#https://static.wixstatic.com/media/bb6757_64b718fb08b5495b9c94938d7a690ac0~mv2.png/v1/fit/w_700,h_2000,al_c,q_85/bb6757_64b718fb08b5495b9c94938d7a690ac0~mv2.png',
       logo7: 'https://ci3.googleusercontent.com/meips/ADKq_NZb3GbJdH8mj3l28VAf5ojrvXirDyye7YAVvVBCA57tXTbRdgebHMjsdE-feFtZs_Vy0BibZ-363pm4Y-S2v-Iwtksn_lO_caxqxBO5l5O7twgV9EVcxOIyfOYcY5gbUOiIzQ1p4dYSk_mIEdkWR6pmpMXqlk-tRbInsej5pC2aSYMQzanuxK1be7PN5Cx7MJ5JcKSaldOSqn8fitQSxGoSAbjQ1l4keuxFlgwVn5BbZwz-Ws6Xeg=s0-d-e1-ft#https://static.wixstatic.com/media/bb6757_cf9876b510634dc6a9bc17b70b931e13~mv2.png/v1/fit/w_700,h_2000,al_c,q_85/bb6757_cf9876b510634dc6a9bc17b70b931e13~mv2.png',
-      logo8: 'https://res.cloudinary.com/dcvqytwuq/image/upload/v1760118756/koll2ak5y9cmgl5628i_lcudcj.png',
+      logo8: 'https://res.cloudinary.com/dcvqytwuq/image/upload/v1760205286/Screenshot_from_2025-10-11_22-43-59_zekjmu.png',
       logo9: 'https://res.cloudinary.com/dcvqytwuq/image/upload/v1759744678/Screenshot_2025-10-06_175425_ntlvzt.png',
       link1: 'https://thenewyorkinjurylawfirm.com/',
       link2: 'https://www.nysenate.gov/senators/joseph-p-addabbo-jr',
@@ -705,15 +705,6 @@ const CustomEmail = () => {
         <img src="${candidSealImageUrl || 'https://ci3.googleusercontent.com/meips/ADKq_NYGVW8BFjgAQRRnofpi33mLvQLecIYPKmlYQfC3somMxhtbpprFw7xYuKEG8-qkuKUemy3HkhNRl3NS6ViJGvVErcA8VLw7x6CFA_lJo5r6PZLiqCRE1nr_E2_SudraNhb3PjI0Jhl7878BbPuTn10te_t3EbqhmtpLOGFxSdBt0vtn_v_wtBnCC9f0yk10DjO-XYa-VfNKeJE1gg-2IDgNwqFud_vcRkqXE0fNBT8cqtUdPQcXmw=s0-d-e1-ft#https://static.wixstatic.com/media/ef9da7_441d25464f0d457fa3e7dec5ab394004~mv2.png/v1/fit/w_108,h_2000,al_c,q_85/ef9da7_441d25464f0d457fa3e7dec5ab394004~mv2.png'}" alt="Platinum Transparency 2025 Candid" class="candid-image" onerror="this.src='https://ci3.googleusercontent.com/meips/ADKq_NYGVW8BFjgAQRRnofpi33mLvQLecIYPKmlYQfC3somMxhtbpprFw7xYuKEG8-qkuKUemy3HkhNRl3NS6ViJGvVErcA8VLw7x6CFA_lJo5r6PZLiqCRE1nr_E2_SudraNhb3PjI0Jhl7878BbPuTn10te_t3EbqhmtpLOGFxSdBt0vtn_v_wtBnCC9f0yk10DjO-XYa-VfNKeJE1gg-2IDgNwqFud_vcRkqXE0fNBT8cqtUdPQcXmw=s0-d-e1-ft#https://static.wixstatic.com/media/ef9da7_441d25464f0d457fa3e7dec5ab394004~mv2.png/v1/fit/w_108,h_2000,al_c,q_85/ef9da7_441d25464f0d457fa3e7dec5ab394004~mv2.png'">
       </div>
       
-      <div class="contact-section">
-        <div class="contact-info">
-          ${footerLocation}<br>
-          ${footerEmail}
-        </div>
-        <div class="site-link">
-          <a href="${siteLinkUrl}" class="site-link-text">${siteLinkText} <img src="/arrow.png" alt="Arrow" class="arrow-image"></a>
-        </div>
-      </div>            
     </div>
   </div>
 </body>
@@ -750,7 +741,7 @@ const CustomEmail = () => {
                 }
               }}
             >
-              {showMobilePreview ? 'Edit' : 'Preview'}
+              {showMobilePreview ? 'Close Preview' : 'Preview'}
             </Button>
           )}
           <Button
@@ -924,193 +915,6 @@ const CustomEmail = () => {
                    value={formData.joinMissionButtonLink}
                    onChange={handleInputChange('joinMissionButtonLink')}
                    placeholder="https://example.com/join"
-                 />
-               </Grid>
-
-               {/* Social Media Section */}
-               <Grid item xs={12}>
-                 <Divider sx={{ my: 2 }}>
-                   <Typography variant="subtitle2" color="text.secondary">
-                     Social Media
-                   </Typography>
-                 </Divider>
-               </Grid>
-
-               <Grid item xs={12} sm={6}>
-                 <TextField
-                   fullWidth
-                   label="Follow Us Text"
-                   value={formData.followUsText}
-                   onChange={handleInputChange('followUsText')}
-                   placeholder="Follow Us"
-                 />
-               </Grid>
-
-               <Grid item xs={12} sm={6}>
-                 <TextField
-                   fullWidth
-                   label="Social Handle"
-                   value={formData.socialHandle}
-                   onChange={handleInputChange('socialHandle')}
-                   placeholder="@JoinHarmony4All"
-                 />
-               </Grid>
-
-               <Grid item xs={12}>
-                 <TextField
-                   fullWidth
-                   label="Social Handle Link"
-                   value={formData.socialHandleLink}
-                   onChange={handleInputChange('socialHandleLink')}
-                   placeholder="https://example.com/social"
-                 />
-               </Grid>
-
-               {/* Social Media Links Section */}
-               <Grid item xs={12}>
-                 <Divider sx={{ my: 2 }}>
-                   <Typography variant="subtitle2" color="text.secondary">
-                     Social Media Links
-                   </Typography>
-                 </Divider>
-               </Grid>
-
-               <Grid item xs={12} sm={6}>
-                 <TextField
-                   fullWidth
-                   label="Email Link"
-                   value={formData.socialMediaLinks.email}
-                   onChange={(e) => setFormData(prev => ({
-                     ...prev,
-                     socialMediaLinks: { ...prev.socialMediaLinks, email: e.target.value }
-                   }))}
-                   placeholder="mailto:media@harmony44all.org"
-                 />
-               </Grid>
-
-               <Grid item xs={12} sm={6}>
-                 <TextField
-                   fullWidth
-                   label="Facebook Link"
-                   value={formData.socialMediaLinks.facebook}
-                   onChange={(e) => setFormData(prev => ({
-                     ...prev,
-                     socialMediaLinks: { ...prev.socialMediaLinks, facebook: e.target.value }
-                   }))}
-                   placeholder="https://facebook.com/harmony4all"
-                 />
-               </Grid>
-
-               <Grid item xs={12} sm={6}>
-                 <TextField
-                   fullWidth
-                   label="Instagram Link"
-                   value={formData.socialMediaLinks.instagram}
-                   onChange={(e) => setFormData(prev => ({
-                     ...prev,
-                     socialMediaLinks: { ...prev.socialMediaLinks, instagram: e.target.value }
-                   }))}
-                   placeholder="https://instagram.com/harmony4all"
-                 />
-               </Grid>
-
-               <Grid item xs={12} sm={6}>
-                 <TextField
-                   fullWidth
-                   label="LinkedIn Link"
-                   value={formData.socialMediaLinks.linkedin}
-                   onChange={(e) => setFormData(prev => ({
-                     ...prev,
-                     socialMediaLinks: { ...prev.socialMediaLinks, linkedin: e.target.value }
-                   }))}
-                   placeholder="https://linkedin.com/company/harmony4all"
-                 />
-               </Grid>
-
-               <Grid item xs={12}>
-                 <TextField
-                   fullWidth
-                   label="YouTube Link"
-                   value={formData.socialMediaLinks.youtube}
-                   onChange={(e) => setFormData(prev => ({
-                     ...prev,
-                     socialMediaLinks: { ...prev.socialMediaLinks, youtube: e.target.value }
-                   }))}
-                   placeholder="https://youtube.com/harmony4all"
-                 />
-               </Grid>
-
-               {/* Social Media Images Section */}
-               <Grid item xs={12}>
-                 <Divider sx={{ my: 2 }}>
-                   <Typography variant="subtitle2" color="text.secondary">
-                     Social Media Images
-                   </Typography>
-                 </Divider>
-               </Grid>
-
-               <Grid item xs={12} sm={6}>
-                 <TextField
-                   fullWidth
-                   label="Email Icon URL"
-                   value={formData.socialMediaImages.email}
-                   onChange={(e) => setFormData(prev => ({
-                     ...prev,
-                     socialMediaImages: { ...prev.socialMediaImages, email: e.target.value }
-                   }))}
-                   placeholder="/mail.png"
-                 />
-               </Grid>
-
-               <Grid item xs={12} sm={6}>
-                 <TextField
-                   fullWidth
-                   label="Facebook Icon URL"
-                   value={formData.socialMediaImages.facebook}
-                   onChange={(e) => setFormData(prev => ({
-                     ...prev,
-                     socialMediaImages: { ...prev.socialMediaImages, facebook: e.target.value }
-                   }))}
-                   placeholder="/facebook.png"
-                 />
-               </Grid>
-
-               <Grid item xs={12} sm={6}>
-                 <TextField
-                   fullWidth
-                   label="Instagram Icon URL"
-                   value={formData.socialMediaImages.instagram}
-                   onChange={(e) => setFormData(prev => ({
-                     ...prev,
-                     socialMediaImages: { ...prev.socialMediaImages, instagram: e.target.value }
-                   }))}
-                   placeholder="/instagram.png"
-                 />
-               </Grid>
-
-               <Grid item xs={12} sm={6}>
-                 <TextField
-                   fullWidth
-                   label="LinkedIn Icon URL"
-                   value={formData.socialMediaImages.linkedin}
-                   onChange={(e) => setFormData(prev => ({
-                     ...prev,
-                     socialMediaImages: { ...prev.socialMediaImages, linkedin: e.target.value }
-                   }))}
-                   placeholder="/linkedin.png"
-                 />
-               </Grid>
-
-               <Grid item xs={12}>
-                 <TextField
-                   fullWidth
-                   label="YouTube Icon URL"
-                   value={formData.socialMediaImages.youtube}
-                   onChange={(e) => setFormData(prev => ({
-                     ...prev,
-                     socialMediaImages: { ...prev.socialMediaImages, youtube: e.target.value }
-                   }))}
-                   placeholder="/youtube.png"
                  />
                </Grid>
 
@@ -1373,46 +1177,6 @@ const CustomEmail = () => {
                    placeholder="https://example.com/candid.png"
                  />
                </Grid>
-
-               <Grid item xs={12} sm={6}>
-                 <TextField
-                   fullWidth
-                   label="Footer Email"
-                   value={formData.footerEmail}
-                   onChange={handleInputChange('footerEmail')}
-                   placeholder="media@harmony44all.org"
-                 />
-               </Grid>
-
-               <Grid item xs={12} sm={6}>
-                 <TextField
-                   fullWidth
-                   label="Footer Location"
-                   value={formData.footerLocation}
-                   onChange={handleInputChange('footerLocation')}
-                   placeholder="New York, NY, USA"
-                 />
-               </Grid>
-
-               <Grid item xs={12} sm={6}>
-                 <TextField
-                   fullWidth
-                   label="Site Link Text"
-                   value={formData.siteLinkText}
-                   onChange={handleInputChange('siteLinkText')}
-                   placeholder="Check out our site"
-                 />
-               </Grid>
-
-               <Grid item xs={12} sm={6}>
-                 <TextField
-                   fullWidth
-                   label="Site Link URL"
-                   value={formData.siteLinkUrl}
-                   onChange={handleInputChange('siteLinkUrl')}
-                   placeholder="https://example.com"
-                 />
-               </Grid>
              </Grid>
           </Paper>
         </Grid>
@@ -1459,7 +1223,7 @@ const CustomEmail = () => {
                     }
                   }}
                 >
-                  Edit
+                  Close Preview
                 </Button>
               </Box>
             )}
