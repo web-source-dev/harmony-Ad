@@ -28,8 +28,6 @@ import {
 import { useNavigate } from 'react-router-dom';
 import MediaManagerModal from '../blog/createBlogTabs/modals/MediaManagerModal';
 import API from '../../BackendAPi/ApiProvider';
-import { useNetwork } from '../../contexts/NetworkContext';
-import OfflineMessage from './OfflineMessage';
 
 const VideoManagement = () => {
   const navigate = useNavigate();
@@ -61,7 +59,6 @@ const VideoManagement = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const { isOnline } = useNetwork();
 
   const handleRetry = () => {
     window.location.reload();
@@ -112,14 +109,7 @@ const VideoManagement = () => {
       return;
     }
 
-    // Validate that scheduled date and time is in the future
-    const scheduledDateTime = new Date(`${formData.scheduledDate}T${formData.scheduledTime}`);
-    const now = new Date();
-    
-    if (scheduledDateTime <= now) {
-      setError('Scheduled date and time must be in the future');
-      return;
-    }
+    // Removed future date validation - allow scheduling for any date/time
 
     setLoading(true);
     setError('');
