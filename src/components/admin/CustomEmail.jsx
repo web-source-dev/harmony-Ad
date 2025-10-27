@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Grid,
@@ -29,6 +29,13 @@ import {
   ListItemIcon,
   useMediaQuery,
   useTheme,
+  Autocomplete,
+  Popper,
+  ClickAwayListener,
+  Fade,
+  ListItemButton,
+  Avatar,
+  Badge,
 } from '@mui/material';
 import {
   Send as SendIcon,
@@ -37,6 +44,12 @@ import {
   Error as ErrorIcon,
   Close as CloseIcon,
   Edit as EditIcon,
+  Person as PersonIcon,
+  Business as BusinessIcon,
+  School as SchoolIcon,
+  MusicNote as MusicNoteIcon,
+  Group as GroupIcon,
+  Add as AddIcon,
 } from '@mui/icons-material';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -118,6 +131,14 @@ const CustomEmail = () => {
   const [sendResults, setSendResults] = useState(null);
   const [resultsOpen, setResultsOpen] = useState(false);
   const [sendDialogOpen, setSendDialogOpen] = useState(false);
+  
+  // Email suggestions state
+  const [emailSuggestions, setEmailSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [selectedRecipients, setSelectedRecipients] = useState([]);
+  const [currentSearchTerm, setCurrentSearchTerm] = useState('');
+  const suggestionRef = useRef(null);
 
   // Rich text editor configuration
   const quillModules = {
@@ -138,7 +159,25 @@ const CustomEmail = () => {
 
   useEffect(() => {
     fetchGmailAccounts();
+    fetchEmailSuggestions();
   }, []);
+
+  // Fetch email suggestions when search term changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (currentSearchTerm.length >= 2) {
+        fetchEmailSuggestions();
+        setShowSuggestions(true);
+      } else if (currentSearchTerm.length === 0) {
+        fetchEmailSuggestions(); // Show all suggestions initially
+        setShowSuggestions(true);
+      } else {
+        setShowSuggestions(false);
+      }
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
+  }, [currentSearchTerm]);
 
   const fetchGmailAccounts = async () => {
     try {
@@ -154,11 +193,78 @@ const CustomEmail = () => {
     }
   };
 
-  const handleInputChange = (field) => (event) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: event.target.value
-    }));
+  const fetchEmailSuggestions = async () => {
+    try {
+      setLoadingSuggestions(true);
+      const params = new URLSearchParams();
+      if (currentSearchTerm) params.append('search', currentSearchTerm);
+      params.append('limit', '20');
+      
+      const response = await API.get(`/api/admin/email/suggestions?${params}`);
+      setEmailSuggestions(response.data);
+    } catch (err) {
+      console.error('Error fetching email suggestions:', err);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
+
+  const getCategoryIcon = (category) => {
+    switch (category) {
+      case 'government':
+        return <SchoolIcon />;
+      case 'nonprofit':
+        return <BusinessIcon />;
+      case 'harmony_team':
+        return <GroupIcon />;
+      case 'music_industry':
+        return <MusicNoteIcon />;
+      default:
+        return <PersonIcon />;
+    }
+  };
+
+  const getCategoryColor = (category) => {
+    switch (category) {
+      case 'government':
+        return '#1976d2';
+      case 'nonprofit':
+        return '#388e3c';
+      case 'harmony_team':
+        return '#f57c00';
+      case 'music_industry':
+        return '#7b1fa2';
+      default:
+        return '#757575';
+    }
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    const email = suggestion.email;
+    const currentEmails = selectedRecipients.map(r => r.email);
+    
+    if (!currentEmails.includes(email)) {
+      const newRecipients = [...selectedRecipients, suggestion];
+      setSelectedRecipients(newRecipients);
+      
+      // Update the recipient emails text field with comma
+      const currentValue = sendData.recipientEmails;
+      const lastCommaIndex = currentValue.lastIndexOf(',');
+      const beforeLastComma = lastCommaIndex === -1 ? '' : currentValue.substring(0, lastCommaIndex + 1);
+      const newValue = beforeLastComma + email + ', ';
+      
+      setSendData(prev => ({ ...prev, recipientEmails: newValue }));
+      setCurrentSearchTerm('');
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleRemoveRecipient = (emailToRemove) => {
+    const newRecipients = selectedRecipients.filter(r => r.email !== emailToRemove);
+    setSelectedRecipients(newRecipients);
+    
+    const allEmails = newRecipients.map(r => r.email).join(', ');
+    setSendData(prev => ({ ...prev, recipientEmails: allEmails }));
   };
 
   const handleRecipientEmailsChange = (event) => {
@@ -167,7 +273,25 @@ const CustomEmail = () => {
       ...prev,
       recipientEmails: value
     }));
+    
+    // Extract the last part after the last comma for search
+    const lastCommaIndex = value.lastIndexOf(',');
+    const searchTerm = lastCommaIndex === -1 ? value.trim() : value.substring(lastCommaIndex + 1).trim();
+    setCurrentSearchTerm(searchTerm);
+    
+    // Update selected recipients based on the text input
+    const emails = value.split(',').map(email => email.trim()).filter(email => email.length > 0);
+    const validRecipients = selectedRecipients.filter(r => emails.includes(r.email));
+    setSelectedRecipients(validRecipients);
   };
+
+  const handleInputChange = (field) => (event) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: event.target.value
+    }));
+  };
+
 
   const parseRecipientEmails = () => {
     if (!sendData.recipientEmails.trim()) return [];
@@ -1249,10 +1373,10 @@ const CustomEmail = () => {
       </Grid>
 
        {/* Send Dialog */}
-       <Dialog open={sendDialogOpen} onClose={() => setSendDialogOpen(false)} maxWidth="sm" fullWidth>
+       <Dialog open={sendDialogOpen} onClose={() => setSendDialogOpen(false)} maxWidth="md" fullWidth>
          <DialogTitle>Send Email</DialogTitle>
          <DialogContent>
-           <Grid container spacing={2} sx={{ mt: 1 }}>
+           <Grid container spacing={3} sx={{ mt: 1 }}>
              <Grid item xs={12}>
                <FormControl fullWidth>
                  <InputLabel>Sender Account</InputLabel>
@@ -1270,17 +1394,91 @@ const CustomEmail = () => {
                </FormControl>
              </Grid>
 
+             {/* Recipient Input with Suggestions */}
              <Grid item xs={12}>
                <TextField
                  fullWidth
                  label="Recipient Emails"
                  multiline
-                 rows={4}
+                 rows={3}
                  value={sendData.recipientEmails}
                  onChange={handleRecipientEmailsChange}
-                 placeholder="Enter emails separated by commas (e.g., email1@example.com, email2@example.com)"
+                 placeholder="Type to search contacts... (e.g., email1@example.com, email2@example.com)"
                  helperText={`${parseRecipientEmails().length} emails entered`}
+                 InputProps={{
+                   endAdornment: loadingSuggestions ? <CircularProgress size={20} /> : null
+                 }}
                />
+               
+               {/* Email Suggestions as Chips */}
+               {showSuggestions && emailSuggestions.length > 0 && (
+                 <Box sx={{ mt: 2 }}>
+                   <Typography variant="subtitle2" gutterBottom sx={{ color: '#666', fontWeight: 'bold' }}>
+                     Suggestions:
+                   </Typography>
+                   <Box display="flex" flexWrap="wrap" gap={1} sx={{ maxHeight: '200px', overflow: 'auto' }}>
+                     {emailSuggestions
+                       .filter(suggestion => !selectedRecipients.some(r => r.email === suggestion.email))
+                       .map((suggestion) => (
+                         <Chip
+                           key={suggestion.id}
+                           label={`${suggestion.name} (${suggestion.email})`}
+                           onClick={() => handleSuggestionClick(suggestion)}
+                           icon={
+                             <Avatar sx={{ 
+                               bgcolor: getCategoryColor(suggestion.category),
+                               width: 20,
+                               height: 20
+                             }}>
+                               {getCategoryIcon(suggestion.category)}
+                             </Avatar>
+                           }
+                           sx={{
+                             cursor: 'pointer',
+                             '&:hover': {
+                               backgroundColor: getCategoryColor(suggestion.category),
+                               color: 'white',
+                               '& .MuiChip-icon': {
+                                 color: 'white'
+                               }
+                             }
+                           }}
+                           size="small"
+                         />
+                       ))}
+                   </Box>
+                 </Box>
+               )}
+
+               {/* Selected Recipients */}
+               {selectedRecipients.length > 0 && (
+                 <Box sx={{ mt: 2 }}>
+                   <Typography variant="subtitle2" gutterBottom sx={{ color: '#666', fontWeight: 'bold' }}>
+                     Selected Recipients ({selectedRecipients.length}):
+                   </Typography>
+                   <Box display="flex" flexWrap="wrap" gap={1}>
+                     {selectedRecipients.map((recipient) => (
+                       <Chip
+                         key={recipient.email}
+                         label={`${recipient.name} (${recipient.email})`}
+                         onDelete={() => handleRemoveRecipient(recipient.email)}
+                         color="primary"
+                         variant="outlined"
+                         size="small"
+                         icon={
+                           <Avatar sx={{ 
+                             bgcolor: getCategoryColor(recipient.category),
+                             width: 20,
+                             height: 20
+                           }}>
+                             {getCategoryIcon(recipient.category)}
+                           </Avatar>
+                         }
+                       />
+                     ))}
+                   </Box>
+                 </Box>
+               )}
              </Grid>
            </Grid>
          </DialogContent>
