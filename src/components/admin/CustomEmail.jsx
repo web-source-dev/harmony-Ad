@@ -665,12 +665,12 @@ const CustomEmail = () => {
     }
     .blog-image-box {
       width: 100%;
-      height: 500px;
+      height: auto;
       margin-bottom: 20px;
     }
     .blog-image {
       width: 100%;
-      height: 500px;
+      height: auto;
       object-fit: cover;
       border-radius: 8px;
       margin-bottom: 20px;
