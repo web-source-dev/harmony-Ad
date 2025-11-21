@@ -50,6 +50,8 @@ import {
   MusicNote as MusicNoteIcon,
   Group as GroupIcon,
   Add as AddIcon,
+  AttachFile as AttachFileIcon,
+  Delete as DeleteIcon,
 } from '@mui/icons-material';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
@@ -117,6 +119,9 @@ const CustomEmail = () => {
       link9: 'https://www.villarussocatering.com/'
     }
   });
+
+  // Attachments state
+  const [attachments, setAttachments] = useState([]);
 
   const [sendData, setSendData] = useState({
     senderAccountIndex: 0,
@@ -294,6 +299,38 @@ const CustomEmail = () => {
     }));
   };
 
+  // Handle file attachment
+  const handleFileAttachment = (event) => {
+    const files = Array.from(event.target.files);
+    
+    files.forEach(file => {
+      // Check file size (max 25MB per file)
+      if (file.size > 25 * 1024 * 1024) {
+        setError(`File ${file.name} is too large. Maximum size is 25MB.`);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const base64Content = e.target.result.split(',')[1]; // Remove data:...;base64, prefix
+        setAttachments(prev => [...prev, {
+          filename: file.name,
+          content: base64Content,
+          contentType: file.type
+        }]);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Reset the input
+    event.target.value = '';
+  };
+
+  // Remove attachment
+  const handleRemoveAttachment = (index) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
   const parseEmailList = (value = '') => {
     if (!value.trim()) return [];
     return value
@@ -367,7 +404,8 @@ const CustomEmail = () => {
         siteLinkUrl: formData.siteLinkUrl,
         socialMediaLinks: formData.socialMediaLinks,
         socialMediaImages: formData.socialMediaImages,
-        fundersData: formData.fundersData
+        fundersData: formData.fundersData,
+        attachments: attachments
       });
 
       setSendResults(response.data.results);
@@ -468,78 +506,41 @@ const CustomEmail = () => {
       margin-bottom: 25px; 
     }
     .blog-content { 
-      color: #4a5568; 
+      margin: 0; 
+      padding: 0; 
+      line-height: 1.6; 
       font-size: 16px; 
-      line-height: 1.8; 
-      margin-bottom: 30px; 
+    }
+    .blog-content * { 
+      margin-top: 0 !important; 
+      margin-bottom: 0 !important; 
     }
     .blog-content p { 
-      margin-bottom: 15px; 
-      margin-top: 0;
+      margin: 0 !important; 
+      padding: 0 !important; 
+      line-height: 1.6; 
     }
-    .blog-content p:first-child {
-      margin-top: 0;
+    .blog-content p:empty { 
+      display: none; 
+      height: 0; 
     }
-    .blog-content p:last-child {
-      margin-bottom: 0;
+    .blog-content ul, 
+    .blog-content ol { 
+      margin: 0 !important; 
+      padding-left: 1.5em; 
+      padding-top: 0 !important; 
+      padding-bottom: 0 !important; 
     }
-    .blog-content strong { 
-      font-weight: bold; 
-      color: #2d3748;
+    .blog-content li { 
+      margin: 0 !important; 
+      padding: 0; 
     }
-    .blog-content b { 
-      font-weight: bold; 
-      color: #2d3748;
-    }
-    .blog-content em { 
-      font-style: italic; 
-    }
-    .blog-content i { 
-      font-style: italic; 
-    }
-    .blog-content u {
-      text-decoration: underline;
-    }
-    .blog-content a { 
-      color: #2d3748 !important; 
-      text-decoration: underline; 
-    }
-    .blog-content a:hover {
-      color: #1a202c !important;
-    }
-    .blog-content ul {
-      margin: 15px 0;
-      padding-left: 20px;
-    }
-    .blog-content ol {
-      margin: 15px 0;
-      padding-left: 20px;
-    }
-    .blog-content li {
-      margin-bottom: 8px;
-    }
-    .blog-content h1, .blog-content h2, .blog-content h3, .blog-content h4, .blog-content h5, .blog-content h6 {
-      color: #2d3748;
-      margin: 20px 0 10px 0;
-      font-weight: bold;
-    }
-    .blog-content h1 { font-size: 24px; }
-    .blog-content h2 { font-size: 22px; }
-    .blog-content h3 { font-size: 20px; }
-    .blog-content h4 { font-size: 18px; }
-    .blog-content h5 { font-size: 16px; }
-    .blog-content h6 { font-size: 14px; }
-    .blog-content blockquote {
-      border-left: 4px solid #9ba5a5;
-      padding-left: 15px;
-      margin: 15px 0;
-      font-style: italic;
-      color: #666;
-    }
-    .blog-content hr {
-      border: none;
-      border-top: 1px solid #e2e8f0;
-      margin: 20px 0;
+    .blog-content h1, 
+    .blog-content h2, 
+    .blog-content h3 { 
+      margin: 0 !important; 
+      padding: 0 !important; 
+      line-height: 1.3; 
     }
     .footer { 
       background: #ffffff; 
@@ -1027,6 +1028,82 @@ const CustomEmail = () => {
                      formats={quillFormats}
                      placeholder="Enter your email content here..."
                    />
+                 </Box>
+               </Grid>
+
+               {/* Attachments Section */}
+               <Grid item xs={12}>
+                 <Divider sx={{ my: 2 }}>
+                   <Typography variant="subtitle2" color="text.secondary">
+                     Attachments
+                   </Typography>
+                 </Divider>
+               </Grid>
+
+               <Grid item xs={12}>
+                 <Box>
+                   <Button
+                     variant="outlined"
+                     component="label"
+                     startIcon={<AttachFileIcon />}
+                     sx={{ 
+                       borderColor: '#000', 
+                       color: '#000',
+                       borderRadius: '25px',
+                       fontWeight: 'bold',
+                       mb: 2,
+                       '&:hover': {
+                         borderColor: '#333',
+                         backgroundColor: '#f5f5f5'
+                       }
+                     }}
+                   >
+                     Add Attachment
+                     <input
+                       type="file"
+                       hidden
+                       multiple
+                       onChange={handleFileAttachment}
+                     />
+                   </Button>
+                   
+                   {attachments.length > 0 && (
+                     <Box sx={{ mt: 2 }}>
+                       <Typography variant="subtitle2" gutterBottom sx={{ color: '#666', fontWeight: 'bold' }}>
+                         Attached Files ({attachments.length}):
+                       </Typography>
+                       <List dense>
+                         {attachments.map((attachment, index) => (
+                           <ListItem
+                             key={index}
+                             secondaryAction={
+                               <IconButton 
+                                 edge="end" 
+                                 aria-label="delete"
+                                 onClick={() => handleRemoveAttachment(index)}
+                               >
+                                 <DeleteIcon />
+                               </IconButton>
+                             }
+                             sx={{ 
+                               border: '1px solid #e0e0e0', 
+                               borderRadius: '4px', 
+                               mb: 1,
+                               backgroundColor: '#f9f9f9'
+                             }}
+                           >
+                             <ListItemIcon>
+                               <AttachFileIcon />
+                             </ListItemIcon>
+                             <ListItemText 
+                               primary={attachment.filename}
+                               secondary={`${(attachment.content.length * 0.75 / 1024 / 1024).toFixed(2)} MB`}
+                             />
+                           </ListItem>
+                         ))}
+                       </List>
+                     </Box>
+                   )}
                  </Box>
                </Grid>
 
