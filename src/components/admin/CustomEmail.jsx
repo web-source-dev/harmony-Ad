@@ -64,6 +64,7 @@ const CustomEmail = () => {
 
   const [formData, setFormData] = useState({
     title: '',
+    subheading: '',
     subject: '',
     imageUrl: '',
     content: '',
@@ -387,6 +388,7 @@ const CustomEmail = () => {
         ccEmails,
         bccEmails,
         title: formData.title,
+        subheading: formData.subheading,
         subject: formData.subject,
         imageUrl: formData.imageUrl,
         content: formData.content,
@@ -422,7 +424,8 @@ const CustomEmail = () => {
 
   const generatePreviewHTML = () => {
     const { 
-      title, 
+      title,
+      subheading,
       imageUrl, 
       content, 
       senderName,
@@ -496,8 +499,15 @@ const CustomEmail = () => {
       color: #2d3748; 
       font-size: 28px; 
       font-weight: bold; 
-      margin-bottom: 15px; 
+      margin-bottom: 10px; 
       line-height: 1.3; 
+    }
+    .blog-subheading {
+      color: #666;
+      font-size: 18px;
+      font-weight: normal;
+      margin-bottom: 15px;
+      line-height: 1.4;
     }
     .blog-author { 
       color: #666; 
@@ -736,6 +746,7 @@ const CustomEmail = () => {
     
     <div class="content">
       <h1 class="blog-title">${title || 'Harmony 4 All'}</h1>
+      ${subheading ? `<div class="blog-subheading">${subheading}</div>` : ''}
       <div class="blog-author">By: ${senderName}</div>
       
       ${imageUrl ? `
@@ -959,6 +970,16 @@ const CustomEmail = () => {
                    value={formData.title}
                    onChange={handleInputChange('title')}
                    placeholder="Email title (appears in header)"
+                 />
+               </Grid>
+
+               <Grid item xs={12}>
+                 <TextField
+                   fullWidth
+                   label="Subheading"
+                   value={formData.subheading}
+                   onChange={handleInputChange('subheading')}
+                   placeholder="Email subheading (optional, appears under title)"
                  />
                </Grid>
 
