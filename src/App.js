@@ -6,7 +6,7 @@ import { NetworkProvider } from './contexts/NetworkContext';
 import { CssBaseline } from '@mui/material';
 import AdminDashboard from './components/admin/AdminDashboard';
 import AdminOverview from './components/admin/Overview';
-import AdminBlogs from './components/admin/Blogs';
+import AdminBlogs from './components/admin/Blogs'; 
 import CreateBlog from './components/blog/CreateBlog';
 import ManageBlog from './components/blog/ManageBlog';
 import AdminDonations from './components/admin/Donations';
