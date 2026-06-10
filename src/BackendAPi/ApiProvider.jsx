@@ -42,7 +42,13 @@ API.interceptors.response.use(
       error.message = 'Network error. Please check your internet connection.';
       error.isOffline = true;
     } else if (error.response?.status === 413) {
-      error.message = 'File too large. Please choose a smaller file.';
+      error.message = 'File too large. Please choose a smaller file (images under 10MB).';
+    } else if (
+      error.message === 'Network Error' &&
+      error.config?.url?.includes('/upload')
+    ) {
+      error.message =
+        'Upload blocked by the server (often a file size limit). Try a smaller image or contact your administrator.';
     } else if (error.response?.status === 415) {
       error.message = 'Unsupported file type. Please choose a valid image or video file.';
     }

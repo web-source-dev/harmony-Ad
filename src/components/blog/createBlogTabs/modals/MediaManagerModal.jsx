@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
+  compressImageIfNeeded,
+  formatFileSize,
+  MAX_IMAGE_UPLOAD_BYTES,
+  MAX_VIDEO_UPLOAD_BYTES,
+} from '../../../../utils/imageCompression';
+import {
   Dialog,
   DialogTitle,
   DialogContent,
@@ -165,15 +171,24 @@ const MediaManagerModal = ({
     const files = Array.from(event.target.files);
     if (files.length === 0) return;
 
-    // Validate files
     const validFiles = files.filter(file => {
-      const isValidImage = file.type.startsWith('image/') && file.size <= 5 * 1024 * 1024; // 5MB for images
-      const isValidVideo = file.type.startsWith('video/') && file.size <= 100 * 1024 * 1024; // 100MB for videos
-      
-      if (!isValidImage && !isValidVideo) {
-        setError(`Invalid file: ${file.name}. Images must be under 5MB, videos must be under 100MB`);
+      const isImage = file.type.startsWith('image/');
+      const isVideo = file.type.startsWith('video/');
+
+      if (!isImage && !isVideo) {
+        setError(`Invalid file: ${file.name}. Only image and video files are supported.`);
         return false;
       }
+
+      const maxSize = isImage ? MAX_IMAGE_UPLOAD_BYTES : MAX_VIDEO_UPLOAD_BYTES;
+      if (file.size > maxSize) {
+        setError(
+          `File too large: ${file.name} (${formatFileSize(file.size)}). ` +
+          `${isImage ? 'Images' : 'Videos'} must be under ${formatFileSize(maxSize)}.`
+        );
+        return false;
+      }
+
       return true;
     });
 
@@ -193,9 +208,15 @@ const MediaManagerModal = ({
     let completedFiles = 0;
 
     for (const file of files) {
+      let uploadFile = file;
+
       try {
+        uploadFile = file.type.startsWith('image/')
+          ? await compressImageIfNeeded(file)
+          : file;
+
         const formData = new FormData();
-        formData.append(file.type.startsWith('image/') ? 'image' : 'video', file);
+        formData.append(uploadFile.type.startsWith('image/') ? 'image' : 'video', uploadFile);
 
         const endpoint = file.type.startsWith('image/') 
           ? '/api/media/upload/image' 
@@ -232,7 +253,22 @@ const MediaManagerModal = ({
           status: err.response?.status,
           file: file.name
         });
-        setError(`Failed to upload ${file.name}: ${err.response?.data?.message || err.message}`);
+        const uploadError = err.response?.data?.message || err.message;
+        const isLikelySizeError =
+          err.response?.status === 413 ||
+          uploadError.toLowerCase().includes('too large') ||
+          (err.message === 'Network Error' && uploadFile.size > 1024 * 1024);
+
+        const isVideo = file.type.startsWith('video/');
+        setError(
+          isLikelySizeError
+            ? `Failed to upload ${file.name} (${formatFileSize(uploadFile.size)}): ${
+                isVideo
+                  ? 'video exceeds the server upload limit. Max is 100MB. Compress the video or ask your host to set nginx client_max_body_size to 150M.'
+                  : 'image is too large. Try a smaller file or compress it first.'
+              }`
+            : `Failed to upload ${file.name}: ${uploadError}`
+        );
       }
     }
 
