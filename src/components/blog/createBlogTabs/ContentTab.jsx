@@ -1016,6 +1016,8 @@ const ContentTab = ({
   setImageAlt,
   url,
   setUrl,
+  videoUrl,
+  setVideoUrl,
   blogVideo,
   setBlogVideo,
   videoPreview,
@@ -2911,7 +2913,7 @@ const ContentTab = ({
           {/* URL Input */}
           <TextField
             label="URL"
-            placeholder="Enter a URL"
+            placeholder="Enter a link URL (opens in new tab when image is clicked)"
             value={url || ''}
             onChange={(e) => setUrl(e.target.value)}
             fullWidth
@@ -2924,6 +2926,31 @@ const ContentTab = ({
                 </InputAdornment>
               ),
             }}
+            helperText="Takes priority over Video URL. When set, clicking the image opens this link."
+          />
+
+          {/* Video URL Input */}
+          <TextField
+            label="Video URL"
+            placeholder="Enter a video URL (YouTube, Vimeo, or direct .mp4 link)"
+            value={videoUrl || ''}
+            onChange={(e) => setVideoUrl(e.target.value)}
+            fullWidth
+            variant="outlined"
+            sx={{ mt: 2, mb: 1 }}
+            disabled={!!url}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <VideoLibrary fontSize="small" />
+                </InputAdornment>
+              ),
+            }}
+            helperText={
+              url
+                ? 'Disabled while URL is set. Clear the URL field to use Video URL instead.'
+                : 'Plays inline on the featured image when clicked. Only used if URL is empty.'
+            }
           />
         </Box>
       )}

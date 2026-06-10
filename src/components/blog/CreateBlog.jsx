@@ -190,6 +190,7 @@ const CreateBlog = () => {
   const [blogVideo, setBlogVideo] = useState(null);
   const [videoPreview, setVideoPreview] = useState('');
   const [url, setUrl] = useState('');
+  const [videoUrl, setVideoUrl] = useState('');
   const [wordCount, setWordCount] = useState(0);
   const [estimatedReadTime, setEstimatedReadTime] = useState(0);
   
@@ -471,6 +472,7 @@ const CreateBlog = () => {
         setVideoPreview(data.blogVideo);
       }
       setUrl(data.url || '');
+      setVideoUrl(data.videoUrl || '');
       setWordCount(data.wordCount || 0);
       setEstimatedReadTime(data.estimatedReadTime || 0);
       
@@ -581,6 +583,7 @@ const CreateBlog = () => {
       if (url) {
         formData.append('url', url);
       }
+      formData.append('videoUrl', videoUrl || '');
       formData.append('wordCount', wordCount);
       formData.append('estimatedReadTime', estimatedReadTime);
       
@@ -916,6 +919,8 @@ const CreateBlog = () => {
                 setImageAlt={setImageAlt}
                 url={url}
                 setUrl={setUrl}
+                videoUrl={videoUrl}
+                setVideoUrl={setVideoUrl}
                 wordCount={wordCount}
                 setWordCount={setWordCount}
                 estimatedReadTime={estimatedReadTime}
