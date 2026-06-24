@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000",
+  baseURL: process.env.REACT_APP_API_URL || "https://api.harmony4all.org",
   timeout: 0, // 0 means no timeout - allow infinite time for large uploads
   maxContentLength: Infinity, // Allow infinite content length
   maxBodyLength: Infinity, // Allow infinite body length
