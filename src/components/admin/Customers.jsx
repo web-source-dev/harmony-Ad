@@ -263,11 +263,22 @@ const Customers = () => {
 
   const validateForm = () => {
     const errors = {};
+
+    if (!formData.firstName.trim()) {
+      errors.firstName = 'First name is required';
+    }
+    if (!formData.lastName.trim()) {
+      errors.lastName = 'Last name is required';
+    }
     if (!formData.email.trim()) {
       errors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       errors.email = 'Email is invalid';
     }
+    if (!formData.phone.trim()) {
+      errors.phone = 'Phone number is required';
+    }
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -957,6 +968,7 @@ const Customers = () => {
                   <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
+                      required
                       label="First Name"
                       value={formData.firstName}
                       onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
@@ -967,6 +979,7 @@ const Customers = () => {
                   <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
+                      required
                       label="Last Name"
                       value={formData.lastName}
                       onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
@@ -977,6 +990,7 @@ const Customers = () => {
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
+                      required
                       label="Email"
                       type="email"
                       value={formData.email}
@@ -988,9 +1002,12 @@ const Customers = () => {
                   <Grid item xs={12} md={4}>
                     <TextField
                       fullWidth
+                      required
                       label="Phone"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      error={!!formErrors.phone}
+                      helperText={formErrors.phone}
                     />
                   </Grid>
                   <Grid item xs={12} md={4}>

@@ -179,6 +179,7 @@ const CreateCustomer = () => {
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
+                      required
                       label="First Name"
                       value={formData.firstName}
                       onChange={(e) => handleInputChange('firstName', e.target.value)}
@@ -196,6 +197,7 @@ const CreateCustomer = () => {
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
+                      required
                       label="Last Name"
                       value={formData.lastName}
                       onChange={(e) => handleInputChange('lastName', e.target.value)}
@@ -213,6 +215,7 @@ const CreateCustomer = () => {
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
+                      required
                       label="Email"
                       type="email"
                       value={formData.email}
@@ -231,6 +234,7 @@ const CreateCustomer = () => {
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
+                      required
                       label="Phone Number"
                       value={formData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}

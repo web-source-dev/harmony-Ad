@@ -313,6 +313,29 @@ const PublicCreateContact = () => {
     };
     
     let hasErrors = false;
+
+    if (!formData.firstName.trim()) {
+      newFieldErrors.firstName = 'First name is required';
+      hasErrors = true;
+    }
+
+    if (!formData.lastName.trim()) {
+      newFieldErrors.lastName = 'Last name is required';
+      hasErrors = true;
+    }
+
+    if (!formData.email.trim()) {
+      newFieldErrors.email = 'Email is required';
+      hasErrors = true;
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newFieldErrors.email = 'Email is invalid';
+      hasErrors = true;
+    }
+
+    if (!formData.phone.trim()) {
+      newFieldErrors.phone = 'Phone number is required';
+      hasErrors = true;
+    }
     
     setFieldErrors(newFieldErrors);
     return !hasErrors;
@@ -645,6 +668,7 @@ const PublicCreateContact = () => {
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
+                      required
                       value={formData.firstName}
                       onChange={(e) => handleInputChange('firstName', e.target.value)}
                       error={!!fieldErrors.firstName}
@@ -662,6 +686,7 @@ const PublicCreateContact = () => {
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
+                      required
                       value={formData.lastName}
                       onChange={(e) => handleInputChange('lastName', e.target.value)}
                       error={!!fieldErrors.lastName}
@@ -679,6 +704,7 @@ const PublicCreateContact = () => {
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
+                      required
                       type="email"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
@@ -697,6 +723,7 @@ const PublicCreateContact = () => {
                   <Grid item xs={12} sm={6}>
                     <TextField
                       fullWidth
+                      required
                       value={formData.phone}
                       onChange={(e) => handleInputChange('phone', e.target.value)}
                       error={!!fieldErrors.phone}
