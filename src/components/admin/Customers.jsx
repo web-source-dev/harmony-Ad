@@ -53,6 +53,8 @@ import {
   Business as BusinessIcon,
 } from '@mui/icons-material';
 import API from '../../BackendAPi/ApiProvider';
+import { formatUSPhoneInput, formatUSPhoneForStorage, getUSPhoneValidationError } from '../../utils/usPhone';
+import PhoneField from '../shared/PhoneField';
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
@@ -165,9 +167,9 @@ const Customers = () => {
         firstName: customer.firstName || '',
         lastName: customer.lastName || '',
         email: customer.email || '',
-        phone: customer.phone || '',
-        phone1: customer.phone1 || '',
-        phone2: customer.phone2 || '',
+        phone: formatUSPhoneInput(customer.phone) || '',
+        phone1: formatUSPhoneInput(customer.phone1) || '',
+        phone2: formatUSPhoneInput(customer.phone2) || '',
         address: customer.address || '',
         address1Street: customer.address1Street || '',
         address1City: customer.address1City || '',
@@ -275,8 +277,17 @@ const Customers = () => {
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       errors.email = 'Email is invalid';
     }
-    if (!formData.phone.trim()) {
-      errors.phone = 'Phone number is required';
+    const phoneError = getUSPhoneValidationError(formData.phone, { required: true });
+    if (phoneError) {
+      errors.phone = phoneError;
+    }
+    const phone1Error = getUSPhoneValidationError(formData.phone1);
+    if (phone1Error) {
+      errors.phone1 = phone1Error;
+    }
+    const phone2Error = getUSPhoneValidationError(formData.phone2);
+    if (phone2Error) {
+      errors.phone2 = phone2Error;
     }
 
     setFormErrors(errors);
@@ -286,11 +297,18 @@ const Customers = () => {
   const handleSubmit = async () => {
     if (!validateForm()) return;
 
+    const submitData = {
+      ...formData,
+      phone: formatUSPhoneForStorage(formData.phone),
+      phone1: formatUSPhoneForStorage(formData.phone1),
+      phone2: formatUSPhoneForStorage(formData.phone2),
+    };
+
     try {
       if (editingCustomer) {
-        await API.put(`/api/admin/customers/${editingCustomer._id}`, formData);
+        await API.put(`/api/admin/customers/${editingCustomer._id}`, submitData);
       } else {
-        await API.post('/api/admin/customers', formData);
+        await API.post('/api/admin/customers', submitData);
       }
       handleCloseDialog();
       fetchCustomers();
@@ -1000,30 +1018,34 @@ const Customers = () => {
                     />
                   </Grid>
                   <Grid item xs={12} md={4}>
-                    <TextField
+                    <PhoneField
                       fullWidth
                       required
                       label="Phone"
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      onChange={(value) => setFormData({ ...formData, phone: value })}
                       error={!!formErrors.phone}
                       helperText={formErrors.phone}
                     />
                   </Grid>
                   <Grid item xs={12} md={4}>
-                    <TextField
+                    <PhoneField
                       fullWidth
                       label="Phone 1"
                       value={formData.phone1}
-                      onChange={(e) => setFormData({ ...formData, phone1: e.target.value })}
+                      onChange={(value) => setFormData({ ...formData, phone1: value })}
+                      error={!!formErrors.phone1}
+                      helperText={formErrors.phone1}
                     />
                   </Grid>
                   <Grid item xs={12} md={4}>
-                    <TextField
+                    <PhoneField
                       fullWidth
                       label="Phone 2"
                       value={formData.phone2}
-                      onChange={(e) => setFormData({ ...formData, phone2: e.target.value })}
+                      onChange={(value) => setFormData({ ...formData, phone2: value })}
+                      error={!!formErrors.phone2}
+                      helperText={formErrors.phone2}
                     />
                   </Grid>
                   <Grid item xs={12}>

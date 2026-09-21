@@ -40,6 +40,8 @@ import publicOfflineStorage from '../../services/publicOfflineStorage';
 import publicSyncService from '../../services/publicSyncService';
 import { useNetwork } from '../../contexts/NetworkContext';
 import VisitorPopup from './VisitorPopup';
+import { formatUSPhoneForStorage, getUSPhoneValidationError } from '../../utils/usPhone';
+import PhoneField from '../shared/PhoneField';
 
 const PublicCreateContact = () => {
   const { isOnline: networkIsOnline, cacheVersion } = useNetwork();
@@ -332,11 +334,12 @@ const PublicCreateContact = () => {
       hasErrors = true;
     }
 
-    if (!formData.phone.trim()) {
-      newFieldErrors.phone = 'Phone number is required';
+    const phoneError = getUSPhoneValidationError(formData.phone, { required: true });
+    if (phoneError) {
+      newFieldErrors.phone = phoneError;
       hasErrors = true;
     }
-    
+
     setFieldErrors(newFieldErrors);
     return !hasErrors;
   };
@@ -357,7 +360,7 @@ const PublicCreateContact = () => {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         email: formData.email.trim().toLowerCase(),
-        phone: formData.phone.trim(),
+        phone: formatUSPhoneForStorage(formData.phone),
         source: 'public',
         isSubscribed: true,
         emailSubscriberStatus: 'subscribed',
@@ -721,14 +724,13 @@ const PublicCreateContact = () => {
                   </Grid>
                   
                   <Grid item xs={12} sm={6}>
-                    <TextField
+                    <PhoneField
                       fullWidth
                       required
                       value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      onChange={(value) => handleInputChange('phone', value)}
                       error={!!fieldErrors.phone}
                       helperText={fieldErrors.phone}
-                      placeholder="Phone Number"
                       disabled={isLoading}
                       sx={{
                         '& .MuiOutlinedInput-root': {

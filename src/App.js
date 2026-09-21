@@ -10,6 +10,7 @@ import AdminBlogs from './components/admin/Blogs';
 import CreateBlog from './components/blog/CreateBlog';
 import ManageBlog from './components/blog/ManageBlog';
 import AdminDonations from './components/admin/Donations';
+import PartnershipAgreements from './components/admin/PartnershipAgreements';
 import AdminContacts from './components/admin/Customers';
 import CreateContact from './components/admin/CreateCustomer';
 import Analytics from './components/admin/Analytics';
@@ -57,6 +58,7 @@ const App = () => {
               <Route path="analytics" element={<Analytics />} />
               <Route path="blogs" element={<AdminBlogs />} />
               <Route path="donations" element={<AdminDonations />} />
+              <Route path="partnership-agreements" element={<PartnershipAgreements />} />
               <Route path="contacts" element={<AdminContacts />} />
               <Route path="contacts/create" element={<CreateContact />} />
               <Route path="social-media" element={<VideoManagementTabs />} />

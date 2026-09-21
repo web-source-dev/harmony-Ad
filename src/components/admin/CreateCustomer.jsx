@@ -17,6 +17,8 @@ import {
   Clear,
 } from '@mui/icons-material';
 import API from '../../BackendAPi/ApiProvider';
+import { formatUSPhoneForStorage, getUSPhoneValidationError } from '../../utils/usPhone';
+import PhoneField from '../shared/PhoneField';
 
 const CreateCustomer = () => {
   const [formData, setFormData] = useState({
@@ -78,11 +80,12 @@ const CreateCustomer = () => {
       hasErrors = true;
     }
     
-    if (!formData.phone.trim()) {
-      newFieldErrors.phone = 'Phone number is required';
+    const phoneError = getUSPhoneValidationError(formData.phone, { required: true });
+    if (phoneError) {
+      newFieldErrors.phone = phoneError;
       hasErrors = true;
     }
-    
+
     setFieldErrors(newFieldErrors);
     return !hasErrors;
   };
@@ -103,7 +106,7 @@ const CreateCustomer = () => {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         email: formData.email.trim().toLowerCase(),
-        phone: formData.phone.trim(),
+        phone: formatUSPhoneForStorage(formData.phone),
         source: 'admin',
         isSubscribed: true,
         emailSubscriberStatus: 'subscribed',
@@ -232,12 +235,12 @@ const CreateCustomer = () => {
                   </Grid>
                   
                   <Grid item xs={12} sm={6}>
-                    <TextField
+                    <PhoneField
                       fullWidth
                       required
                       label="Phone Number"
                       value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      onChange={(value) => handleInputChange('phone', value)}
                       error={!!fieldErrors.phone}
                       helperText={fieldErrors.phone}
                       disabled={isLoading}

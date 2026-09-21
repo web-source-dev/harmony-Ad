@@ -20,6 +20,7 @@ import {
   Analytics as AnalyticsIcon,
   VideoLibrary as VideoIcon,
   Email as EmailIcon,
+  Handshake as HandshakeIcon,
   Logout as LogoutIcon,
 } from '@mui/icons-material';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -60,6 +61,11 @@ const menuItems = [
     text: 'Donations', 
     icon: DonationIcon, 
     path: '/donations' 
+  },
+  { 
+    text: 'Partnerships', 
+    icon: HandshakeIcon, 
+    path: '/partnership-agreements' 
   },
   { 
     text: 'Custom Email', 
