@@ -35,10 +35,22 @@ function isTrivialDigitPattern(digits) {
   return ascending || descending;
 }
 
+// NANP rule: the first digit of an area code or exchange code can't be 0 or 1,
+// and N11 codes (211, 411, 911, etc.) are reserved for service numbers.
+function hasInvalidNanpCode(threeDigits) {
+  if (threeDigits[0] === '0' || threeDigits[0] === '1') return true;
+  if (threeDigits[1] === '1' && threeDigits[2] === '1') return true;
+  return false;
+}
+
+// Local checks only; the backend also confirms the number exists via Twilio Lookup.
 export function isValidUSPhone(raw) {
   const digits = getUSPhoneDigits(raw);
   if (digits.length !== 10) return false;
   if (isTrivialDigitPattern(digits)) return false;
+  if (hasInvalidNanpCode(digits.slice(0, 3))) return false; // area code
+  if (hasInvalidNanpCode(digits.slice(3, 6))) return false; // exchange code
+  if (digits.slice(3, 6) === '555') return false; // fictional numbers
   return true;
 }
 

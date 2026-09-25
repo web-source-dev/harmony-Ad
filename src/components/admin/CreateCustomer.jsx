@@ -18,6 +18,7 @@ import {
 } from '@mui/icons-material';
 import API from '../../BackendAPi/ApiProvider';
 import { formatUSPhoneForStorage, getUSPhoneValidationError } from '../../utils/usPhone';
+import { getEmailValidationError, verifyEmail } from '../../utils/email';
 import PhoneField from '../shared/PhoneField';
 
 const CreateCustomer = () => {
@@ -72,11 +73,9 @@ const CreateCustomer = () => {
       hasErrors = true;
     }
     
-    if (!formData.email.trim()) {
-      newFieldErrors.email = 'Email is required';
-      hasErrors = true;
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newFieldErrors.email = 'Email is invalid';
+    const emailError = getEmailValidationError(formData.email);
+    if (emailError) {
+      newFieldErrors.email = emailError;
       hasErrors = true;
     }
     
@@ -101,7 +100,13 @@ const CreateCustomer = () => {
       setIsLoading(true);
       setError('');
       setSuccess('');
-      
+
+      const emailServerError = await verifyEmail(formData.email);
+      if (emailServerError) {
+        setFieldErrors((prev) => ({ ...prev, email: emailServerError }));
+        return;
+      }
+
       const customerData = {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
@@ -134,7 +139,7 @@ const CreateCustomer = () => {
       
     } catch (err) {
       console.error('Error creating contact:', err);
-      setError(err.message || 'Failed to create contact. Please try again.');
+      setError(err.response?.data?.message || err.message || 'Failed to create contact. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -223,6 +228,10 @@ const CreateCustomer = () => {
                       type="email"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
+                      onBlur={async () => {
+                        const emailError = await verifyEmail(formData.email, { required: false });
+                        if (emailError) setFieldErrors((prev) => ({ ...prev, email: emailError }));
+                      }}
                       error={!!fieldErrors.email}
                       helperText={fieldErrors.email}
                       disabled={isLoading}

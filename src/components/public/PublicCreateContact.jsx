@@ -41,6 +41,7 @@ import publicSyncService from '../../services/publicSyncService';
 import { useNetwork } from '../../contexts/NetworkContext';
 import VisitorPopup from './VisitorPopup';
 import { formatUSPhoneForStorage, getUSPhoneValidationError } from '../../utils/usPhone';
+import { getEmailValidationError, verifyEmail } from '../../utils/email';
 import PhoneField from '../shared/PhoneField';
 
 const PublicCreateContact = () => {
@@ -326,11 +327,9 @@ const PublicCreateContact = () => {
       hasErrors = true;
     }
 
-    if (!formData.email.trim()) {
-      newFieldErrors.email = 'Email is required';
-      hasErrors = true;
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newFieldErrors.email = 'Email is invalid';
+    const emailError = getEmailValidationError(formData.email);
+    if (emailError) {
+      newFieldErrors.email = emailError;
       hasErrors = true;
     }
 
@@ -355,7 +354,14 @@ const PublicCreateContact = () => {
       setIsLoading(true);
       setError('');
       setSuccess('');
-      
+
+      // Skipped automatically when offline; the contact is then saved locally as before
+      const emailServerError = await verifyEmail(formData.email);
+      if (emailServerError) {
+        setFieldErrors((prev) => ({ ...prev, email: emailServerError }));
+        return;
+      }
+
       const customerData = {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
@@ -399,6 +405,12 @@ const PublicCreateContact = () => {
             }
           }
         } catch (err) {
+          // The server rejected the details (e.g. email doesn't exist): show why
+          // instead of storing offline, where sync would keep failing.
+          if (err.response?.status === 400) {
+            setError(err.response.data?.message || 'Please check the contact details and try again.');
+            return;
+          }
           // If server request fails, store offline
           console.log('Server request failed, storing offline:', err);
           await handleOfflineCreate(customerData);
@@ -711,6 +723,10 @@ const PublicCreateContact = () => {
                       type="email"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
+                      onBlur={async () => {
+                        const emailError = await verifyEmail(formData.email, { required: false });
+                        if (emailError) setFieldErrors((prev) => ({ ...prev, email: emailError }));
+                      }}
                       error={!!fieldErrors.email}
                       helperText={fieldErrors.email}
                       placeholder="Email"

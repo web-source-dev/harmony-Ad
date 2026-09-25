@@ -21,6 +21,7 @@ import {
   VideoLibrary as VideoIcon,
   Email as EmailIcon,
   Handshake as HandshakeIcon,
+  QrCode2 as QrCodeIcon,
   Logout as LogoutIcon,
 } from '@mui/icons-material';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -65,7 +66,12 @@ const menuItems = [
   { 
     text: 'Partnerships', 
     icon: HandshakeIcon, 
-    path: '/partnership-agreements' 
+    path: '/partnership-agreements'
+  },
+  {
+    text: 'Event RSVPs',
+    icon: QrCodeIcon,
+    path: '/event-rsvps'
   },
   { 
     text: 'Custom Email', 
@@ -215,7 +221,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, isMobile }) => {
         <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
           Engagement
         </ListSubheader>
-        {menuItems.slice(6, 8).map((item) => (
+        {menuItems.slice(6, 9).map((item) => (
           <ListItem
             button
             key={item.text}

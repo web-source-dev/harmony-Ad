@@ -16,6 +16,7 @@ import {
   Email as EmailIcon,
 } from '@mui/icons-material';
 import publicSyncService from '../../services/publicSyncService';
+import { getEmailValidationError, verifyEmail } from '../../utils/email';
 
 const VisitorPopup = ({ open, onClose, onVisitorInfo }) => {
   const [formData, setFormData] = useState({
@@ -56,11 +57,9 @@ const VisitorPopup = ({ open, onClose, onVisitorInfo }) => {
       hasErrors = true;
     }
     
-    if (!formData.email.trim()) {
-      newFieldErrors.email = 'Email is required';
-      hasErrors = true;
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newFieldErrors.email = 'Email is invalid';
+    const emailError = getEmailValidationError(formData.email);
+    if (emailError) {
+      newFieldErrors.email = emailError;
       hasErrors = true;
     }
     
@@ -78,7 +77,13 @@ const VisitorPopup = ({ open, onClose, onVisitorInfo }) => {
     try {
       setIsLoading(true);
       setError('');
-      
+
+      const emailServerError = await verifyEmail(formData.email);
+      if (emailServerError) {
+        setFieldErrors((prev) => ({ ...prev, email: emailServerError }));
+        return;
+      }
+
       // Create visitor data
       const visitorData = {
         name: formData.name.trim(),
@@ -173,6 +178,10 @@ const VisitorPopup = ({ open, onClose, onVisitorInfo }) => {
               type="email"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
+              onBlur={async () => {
+                const emailError = await verifyEmail(formData.email, { required: false });
+                if (emailError) setFieldErrors((prev) => ({ ...prev, email: emailError }));
+              }}
               error={!!fieldErrors.email}
               helperText={fieldErrors.email}
               placeholder="Email"

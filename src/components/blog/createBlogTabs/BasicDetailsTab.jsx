@@ -22,6 +22,7 @@ import {
 } from '@mui/material';
 import { Description, Category, LocalOffer, Add, Close, PhotoCamera, Storage } from '@mui/icons-material';
 import API from '../../../BackendAPi/ApiProvider';
+import { verifyEmail } from '../../../utils/email';
 import MediaManagerModal from './modals/MediaManagerModal';
 
 const BasicDetailsTab = ({
@@ -101,6 +102,14 @@ const BasicDetailsTab = ({
 
     setNewWriterLoading(true);
     setNewWriterError('');
+
+    // Check before uploading the image so a bad email doesn't leave an orphaned upload
+    const emailError = await verifyEmail(newWriterData.email);
+    if (emailError) {
+      setNewWriterError(emailError);
+      setNewWriterLoading(false);
+      return;
+    }
 
     try {
       let imageUrl = newWriterData.image; // Use URL if provided

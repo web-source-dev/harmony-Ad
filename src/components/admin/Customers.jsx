@@ -54,6 +54,7 @@ import {
 } from '@mui/icons-material';
 import API from '../../BackendAPi/ApiProvider';
 import { formatUSPhoneInput, formatUSPhoneForStorage, getUSPhoneValidationError } from '../../utils/usPhone';
+import { getEmailValidationError, verifyEmail } from '../../utils/email';
 import PhoneField from '../shared/PhoneField';
 
 const Customers = () => {
@@ -272,10 +273,9 @@ const Customers = () => {
     if (!formData.lastName.trim()) {
       errors.lastName = 'Last name is required';
     }
-    if (!formData.email.trim()) {
-      errors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      errors.email = 'Email is invalid';
+    const emailError = getEmailValidationError(formData.email);
+    if (emailError) {
+      errors.email = emailError;
     }
     const phoneError = getUSPhoneValidationError(formData.phone, { required: true });
     if (phoneError) {
@@ -296,6 +296,15 @@ const Customers = () => {
 
   const handleSubmit = async () => {
     if (!validateForm()) return;
+
+    // Existing contacts keep their stored email without re-probing it
+    if (!editingCustomer || formData.email.trim().toLowerCase() !== (editingCustomer.email || '').toLowerCase()) {
+      const emailServerError = await verifyEmail(formData.email);
+      if (emailServerError) {
+        setFormErrors((prev) => ({ ...prev, email: emailServerError }));
+        return;
+      }
+    }
 
     const submitData = {
       ...formData,
@@ -1013,6 +1022,10 @@ const Customers = () => {
                       type="email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      onBlur={async () => {
+                        const emailError = await verifyEmail(formData.email, { required: false });
+                        setFormErrors((prev) => ({ ...prev, email: emailError || undefined }));
+                      }}
                       error={!!formErrors.email}
                       helperText={formErrors.email}
                     />
