@@ -21,7 +21,7 @@ import {
   VideoLibrary as VideoIcon,
   Email as EmailIcon,
   Handshake as HandshakeIcon,
-  QrCode2 as QrCodeIcon,
+  EventAvailable as RsvpEventIcon,
   Logout as LogoutIcon,
 } from '@mui/icons-material';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -69,8 +69,8 @@ const menuItems = [
     path: '/partnership-agreements'
   },
   {
-    text: 'Event RSVPs',
-    icon: QrCodeIcon,
+    text: 'RSVP Events',
+    icon: RsvpEventIcon,
     path: '/event-rsvps'
   },
   { 

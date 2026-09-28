@@ -51,11 +51,14 @@ import {
   Label as LabelIcon,
   CalendarToday as CalendarIcon,
   Business as BusinessIcon,
+  EventAvailable as RsvpEventIcon,
 } from '@mui/icons-material';
+import { Link as RouterLink } from 'react-router-dom';
 import API from '../../BackendAPi/ApiProvider';
 import { formatUSPhoneInput, formatUSPhoneForStorage, getUSPhoneValidationError } from '../../utils/usPhone';
 import { getEmailValidationError, verifyEmail } from '../../utils/email';
 import PhoneField from '../shared/PhoneField';
+import { formatEventDate } from './rsvp/rsvpEventUtils';
 
 const Customers = () => {
   const [customers, setCustomers] = useState([]);
@@ -111,11 +114,13 @@ const Customers = () => {
     source: '',
     labels: '',
     dateFrom: '',
-    dateTo: ''
+    dateTo: '',
+    rsvpEvent: ''
   });
   const [showFilters, setShowFilters] = useState(false);
   const [availableSources, setAvailableSources] = useState([]);
   const [availableLabels, setAvailableLabels] = useState([]);
+  const [availableEvents, setAvailableEvents] = useState([]);
   const [expandedRows, setExpandedRows] = useState(new Set());
   const theme = useTheme();
 
@@ -158,6 +163,13 @@ const Customers = () => {
       setAvailableLabels(labelsResponse.data);
     } catch (err) {
       console.error('Error fetching sources and labels:', err);
+    }
+
+    try {
+      const eventsResponse = await API.get('/api/rsvp/admin/events');
+      setAvailableEvents(eventsResponse.data);
+    } catch (err) {
+      console.error('Error fetching RSVP events:', err);
     }
   };
 
@@ -372,7 +384,8 @@ const Customers = () => {
       source: '',
       labels: '',
       dateFrom: '',
-      dateTo: ''
+      dateTo: '',
+      rsvpEvent: ''
     });
     setPage(1);
   };
@@ -527,6 +540,23 @@ const Customers = () => {
                   {availableLabels.map((label) => (
                     <MenuItem key={label} value={label}>
                       {label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <FormControl fullWidth size="small">
+                <InputLabel>RSVP Event</InputLabel>
+                <Select
+                  value={filters.rsvpEvent}
+                  label="RSVP Event"
+                  onChange={(e) => handleFilterChange('rsvpEvent', e.target.value)}
+                >
+                  <MenuItem value="">All</MenuItem>
+                  {availableEvents.map((event) => (
+                    <MenuItem key={event._id} value={event._id}>
+                      {event.title}{event.eventDate ? ` (${formatEventDate(event.eventDate)})` : ''}
                     </MenuItem>
                   ))}
                 </Select>
@@ -918,6 +948,38 @@ const Customers = () => {
                                       ) : (
                                         <Typography variant="body2" color="textSecondary">
                                           No labels assigned
+                                        </Typography>
+                                      )}
+                                    </Box>
+
+                                    {/* RSVP Events */}
+                                    <Box mb={2}>
+                                      <Typography variant="subtitle2" fontWeight={600} mb={1}>
+                                        RSVP Events
+                                      </Typography>
+                                      {customer.rsvpEvents && customer.rsvpEvents.length > 0 ? (
+                                        <Box display="flex" flexDirection="column" gap={0.5}>
+                                          {[...customer.rsvpEvents]
+                                            .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt))
+                                            .map((entry) => (
+                                              <Chip
+                                                key={entry.event}
+                                                icon={<RsvpEventIcon />}
+                                                label={`${entry.title}${entry.eventDate ? ` · ${formatEventDate(entry.eventDate)}` : ''} · ${entry.guests} ${entry.guests === 1 ? 'person' : 'people'}`}
+                                                size="small"
+                                                variant="outlined"
+                                                color="secondary"
+                                                component={RouterLink}
+                                                to={`/event-rsvps/${entry.event}`}
+                                                clickable
+                                                onClick={(e) => e.stopPropagation()}
+                                                sx={{ alignSelf: 'flex-start' }}
+                                              />
+                                            ))}
+                                        </Box>
+                                      ) : (
+                                        <Typography variant="body2" color="textSecondary">
+                                          No RSVPs
                                         </Typography>
                                       )}
                                     </Box>
