@@ -362,7 +362,11 @@ class PublicOfflineStorage {
         if (contact) {
           contact.synced = true;
           contact.syncedAt = new Date().toISOString();
-          contact.serverId = serverResponse.id || serverResponse._id;
+          contact.syncError = '';
+          contact.serverId = serverResponse?.customer?._id
+            || serverResponse?.customer?.id
+            || serverResponse?.id
+            || serverResponse?._id;
 
           const updateRequest = store.put(contact);
           updateRequest.onsuccess = () => {
@@ -382,6 +386,34 @@ class PublicOfflineStorage {
         console.error('Failed to get contact for sync update');
         reject(getRequest.error);
       };
+    });
+  }
+
+  // Remember why a record did not upload. The contact stays in the queue.
+  async setContactSyncError(contactId, message) {
+    if (!this.db) {
+      await this.init();
+    }
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['contacts'], 'readwrite');
+      const store = transaction.objectStore('contacts');
+      const getRequest = store.get(contactId);
+
+      getRequest.onsuccess = () => {
+        const contact = getRequest.result;
+        if (!contact) {
+          resolve(null);
+          return;
+        }
+        contact.syncError = message || 'Could not sync';
+        contact.syncAttemptedAt = new Date().toISOString();
+        const updateRequest = store.put(contact);
+        updateRequest.onsuccess = () => resolve(contact);
+        updateRequest.onerror = () => reject(updateRequest.error);
+      };
+
+      getRequest.onerror = () => reject(getRequest.error);
     });
   }
 

@@ -1,5 +1,5 @@
 // Service Worker for Harmony Admin
-const CACHE_NAME = 'harmony-admin-v1';
+let CACHE_NAME = 'harmony-admin-v2';
 const CACHE_VERSION = 'harmony-admin-v1';
 
 // Install event - cache important resources
@@ -48,56 +48,38 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - serve from cache or network
+// Fetch event - use the network when it is available so a refresh picks up
+// the sync fix, and fall back to cache only when the iPad is offline.
+// IndexedDB (the pending contacts) is never touched here.
 self.addEventListener('fetch', (event) => {
-  // Only handle GET requests
   if (event.request.method !== 'GET') {
     return;
   }
-  
-  // Skip cross-origin requests
+
   if (!event.request.url.startsWith(self.location.origin)) {
     return;
   }
-  
+
   event.respondWith(
-    caches.match(event.request)
-      .then((cachedResponse) => {
-        // If we have a cached response, return it
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          }).catch(() => {});
+        }
+        return response;
+      })
+      .catch(async () => {
+        const cachedResponse = await caches.match(event.request);
         if (cachedResponse) {
-          console.log('Service Worker: Serving from cache:', event.request.url);
           return cachedResponse;
         }
-        
-        // Otherwise, fetch from network
-        console.log('Service Worker: Fetching from network:', event.request.url);
-        return fetch(event.request)
-          .then((response) => {
-            // Don't cache if not a valid response
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-            
-            // Clone the response
-            const responseToCache = response.clone();
-            
-            // Cache the response for future use
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-                console.log('Service Worker: Cached response for:', event.request.url);
-              });
-            
-            return response;
-          })
-          .catch((error) => {
-            console.error('Service Worker: Fetch failed:', error);
-            // Return a fallback response if available
-            return new Response('Offline - Please check your internet connection', {
-              status: 503,
-              statusText: 'Service Unavailable'
-            });
-          });
+        return new Response('Offline - Please check your internet connection', {
+          status: 503,
+          statusText: 'Service Unavailable'
+        });
       })
   );
 });

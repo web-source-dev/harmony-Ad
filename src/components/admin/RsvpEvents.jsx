@@ -33,6 +33,8 @@ import {
   PictureAsPdf as PdfIcon,
   QrCode2 as QrCodeIcon,
   Refresh as RefreshIcon,
+  Sync as SyncIcon,
+  TableChart as SheetIcon,
 } from '@mui/icons-material';
 import API from '../../BackendAPi/ApiProvider';
 import RsvpEventFormDialog from './rsvp/RsvpEventFormDialog';
@@ -103,10 +105,28 @@ const RsvpEvents = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [togglingId, setTogglingId] = useState(null);
+  const [sheets, setSheets] = useState({ enabled: false, url: null });
+  const [syncingSheets, setSyncingSheets] = useState(false);
 
   useEffect(() => {
     fetchEvents();
+    API.get('/api/rsvp/admin/sheets')
+      .then((response) => setSheets(response.data))
+      .catch(() => {});
   }, []);
+
+  const syncSheets = async () => {
+    try {
+      setSyncingSheets(true);
+      const response = await API.post('/api/rsvp/admin/sheets/sync');
+      setNotice(`Google Sheet updated (${response.data.events} events)`);
+      await reloadEvents();
+    } catch (err) {
+      setError(getErrorMessage(err, 'Failed to sync Google Sheet'));
+    } finally {
+      setSyncingSheets(false);
+    }
+  };
 
   const fetchEvents = async () => {
     try {
@@ -226,7 +246,26 @@ const RsvpEvents = () => {
             One event is live on {RSVP_URL} at a time. Each event turns off automatically after its end date.
           </Typography>
         </Box>
-        <Box display="flex" gap={1}>
+        <Box display="flex" gap={1} flexWrap="wrap">
+          {sheets.enabled && (
+            <>
+              <Button variant="outlined" startIcon={<SheetIcon />} href={sheets.url} target="_blank" rel="noopener noreferrer">
+                Google Sheet
+              </Button>
+              <Tooltip title="Rebuild every event tab and the Overview in the Google Sheet">
+                <span>
+                  <Button
+                    variant="outlined"
+                    startIcon={syncingSheets ? <CircularProgress size={16} /> : <SyncIcon />}
+                    onClick={syncSheets}
+                    disabled={syncingSheets}
+                  >
+                    {syncingSheets ? 'Syncing…' : 'Sync to Sheet'}
+                  </Button>
+                </span>
+              </Tooltip>
+            </>
+          )}
           <Button variant="outlined" startIcon={<RefreshIcon />} onClick={fetchEvents}>
             Refresh
           </Button>

@@ -40,9 +40,26 @@ import publicOfflineStorage from '../../services/publicOfflineStorage';
 import publicSyncService from '../../services/publicSyncService';
 import { useNetwork } from '../../contexts/NetworkContext';
 import VisitorPopup from './VisitorPopup';
-import { formatUSPhoneForStorage, getUSPhoneValidationError } from '../../utils/usPhone';
-import { getEmailValidationError, verifyEmail } from '../../utils/email';
+import { formatUSPhoneForStorage } from '../../utils/usPhone';
 import PhoneField from '../shared/PhoneField';
+
+const SIMPLE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function getPublicFormEmailError(raw) {
+  const trimmed = String(raw ?? '').trim();
+  if (!trimmed) return 'Email is required';
+  if (!SIMPLE_EMAIL.test(trimmed)) return 'Enter a valid email address';
+  return '';
+}
+
+function getPublicFormPhoneError(raw) {
+  const trimmed = String(raw ?? '').trim();
+  if (!trimmed) return 'Phone number is required';
+  let digits = trimmed.replace(/\D/g, '');
+  if (digits.length === 11 && digits.startsWith('1')) digits = digits.slice(1);
+  if (digits.length !== 10) return 'Enter a 10-digit phone number';
+  return '';
+}
 
 const PublicCreateContact = () => {
   const { isOnline: networkIsOnline, cacheVersion } = useNetwork();
@@ -116,6 +133,15 @@ const PublicCreateContact = () => {
         await updateSyncStatus();
         await loadOfflineCustomers();
         console.log('Public offline storage initialized successfully');
+
+        // Refresh does not fire an "online" event. If the iPad is already
+        // online, upload whatever is still saved locally. Nothing is cleared
+        // until the server accepts that record.
+        if (navigator.onLine) {
+          publicSyncService.checkAndSync().catch((syncError) => {
+            console.error('Initial sync failed:', syncError);
+          });
+        }
       } catch (error) {
         console.error('Failed to initialize offline storage:', error);
         console.log('Continuing in offline mode despite initialization error');
@@ -143,19 +169,36 @@ const PublicCreateContact = () => {
           setSyncStatus(prev => ({ ...prev, isSyncing: false }));
           updateSyncStatus();
           loadOfflineCustomers();
+          if (data?.stoppedEarly) {
+            setError(data.message || 'Sync paused. Saved contacts are still on this iPad.');
+          } else if (data?.failed > 0) {
+            setError(
+              data.synced > 0
+                ? `${data.synced} uploaded. ${data.failed} still saved on this iPad: ${data.message || 'could not upload'}`
+                : `Saved on this iPad, not uploaded yet. ${data.message || 'Will retry.'}`
+            );
+          } else if (data?.synced > 0) {
+            setSuccess(`${data.synced} contact${data.synced === 1 ? '' : 's'} synced.`);
+          }
           break;
         case 'contactSynced':
           setSuccess(`Contact "${data.contact.firstName} ${data.contact.lastName}" synced successfully!`);
           // Refresh offline customers list since customer was removed
           loadOfflineCustomers();
+          updateSyncStatus();
           // Refresh visitor stats if visitor email is available
           if (data.visitorEmail && visitorInfo?.email === data.visitorEmail) {
             loadVisitorStats(data.visitorEmail);
           }
           break;
+        case 'contactSyncFailed':
+          loadOfflineCustomers();
+          updateSyncStatus();
+          break;
         case 'syncError':
           console.error('Sync error:', data.error);
-          setError('Failed to sync some contacts. They will be retried automatically.');
+          setError('Could not finish syncing. Contacts already entered are still saved on this iPad.');
+          setSyncStatus(prev => ({ ...prev, isSyncing: false }));
           break;
         default:
           break;
@@ -170,13 +213,14 @@ const PublicCreateContact = () => {
     };
   }, [cacheVersion]);
 
-  // Auto-sync when coming online
+  // Auto-sync only when the connection comes back. Watching the pending
+  // count would retry in a loop and never give the form a chance to sit still.
   useEffect(() => {
-    if (isOnline && syncStatus.offlineCustomers > 0) {
-      console.log('Network came online, triggering auto-sync...');
+    if (isOnline) {
+      console.log('Network is online, uploading any contacts still saved on this iPad...');
       handleAutoSync();
     }
-  }, [isOnline, syncStatus.offlineCustomers]);
+  }, [isOnline]);
 
   // Listen for online/offline events and trigger sync
   useEffect(() => {
@@ -199,8 +243,19 @@ const PublicCreateContact = () => {
       setIsOnline(false);
     };
 
+    const handleVisible = () => {
+      if (document.visibilityState === 'visible' && navigator.onLine) {
+        setIsOnline(true);
+        publicSyncService.checkAndSync().catch((error) => {
+          console.error('Sync on resume failed:', error);
+        });
+      }
+    };
+
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+    window.addEventListener('pageshow', handleVisible);
+    document.addEventListener('visibilitychange', handleVisible);
 
     // Set up periodic sync check (every 30 seconds when online)
     const syncInterval = setInterval(async () => {
@@ -216,6 +271,8 @@ const PublicCreateContact = () => {
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('pageshow', handleVisible);
+      document.removeEventListener('visibilitychange', handleVisible);
       clearInterval(syncInterval);
     };
   }, []);
@@ -327,13 +384,13 @@ const PublicCreateContact = () => {
       hasErrors = true;
     }
 
-    const emailError = getEmailValidationError(formData.email);
+    const emailError = getPublicFormEmailError(formData.email);
     if (emailError) {
       newFieldErrors.email = emailError;
       hasErrors = true;
     }
 
-    const phoneError = getUSPhoneValidationError(formData.phone, { required: true });
+    const phoneError = getPublicFormPhoneError(formData.phone);
     if (phoneError) {
       newFieldErrors.phone = phoneError;
       hasErrors = true;
@@ -355,19 +412,13 @@ const PublicCreateContact = () => {
       setError('');
       setSuccess('');
 
-      // Skipped automatically when offline; the contact is then saved locally as before
-      const emailServerError = await verifyEmail(formData.email);
-      if (emailServerError) {
-        setFieldErrors((prev) => ({ ...prev, email: emailServerError }));
-        return;
-      }
-
       const customerData = {
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         email: formData.email.trim().toLowerCase(),
         phone: formatUSPhoneForStorage(formData.phone),
         source: 'public',
+        fromPublicForm: true,
         isSubscribed: true,
         emailSubscriberStatus: 'subscribed',
         smsSubscriberStatus: 'subscribed',
@@ -635,10 +686,10 @@ const PublicCreateContact = () => {
             />
           )}
           
-          {syncStatus.offlineCustomers > 0 && (
+          {(syncStatus.offlineContacts > 0 || syncStatus.pendingSync > 0) && (
             <Chip
               icon={<Storage />}
-              label={`${syncStatus.offlineCustomers} stored offline`}
+              label={`${syncStatus.pendingSync || syncStatus.offlineContacts} stored on this iPad`}
               color="info"
               variant="outlined"
               onClick={() => setShowOfflineDialog(true)}
@@ -723,8 +774,8 @@ const PublicCreateContact = () => {
                       type="email"
                       value={formData.email}
                       onChange={(e) => handleInputChange('email', e.target.value)}
-                      onBlur={async () => {
-                        const emailError = await verifyEmail(formData.email, { required: false });
+                      onBlur={() => {
+                        const emailError = getPublicFormEmailError(formData.email);
                         if (emailError) setFieldErrors((prev) => ({ ...prev, email: emailError }));
                       }}
                       error={!!fieldErrors.email}
@@ -745,6 +796,10 @@ const PublicCreateContact = () => {
                       required
                       value={formData.phone}
                       onChange={(value) => handleInputChange('phone', value)}
+                      onBlur={() => {
+                        const phoneError = getPublicFormPhoneError(formData.phone);
+                        if (phoneError) setFieldErrors((prev) => ({ ...prev, phone: phoneError }));
+                      }}
                       error={!!fieldErrors.phone}
                       helperText={fieldErrors.phone}
                       disabled={isLoading}
@@ -943,7 +998,7 @@ const PublicCreateContact = () => {
             <Typography variant="h6">
               Offline Contacts ({offlineCustomers.length})
             </Typography>
-            {isOnline && syncStatus.offlineCustomers > 0 && (
+            {isOnline && syncStatus.pendingSync > 0 && (
               <Button
                 variant="contained"
                 startIcon={<Sync />}
@@ -983,6 +1038,11 @@ const PublicCreateContact = () => {
                           <Typography variant="body2" color="text.secondary">
                             {customer.email} • {customer.phone}
                           </Typography>
+                          {customer.syncError && (
+                            <Typography variant="caption" color="error" display="block">
+                              Still on this iPad: {customer.syncError}
+                            </Typography>
+                          )}
                           <Typography variant="caption" color="text.secondary">
                             Stored: {new Date(customer.createdAt).toLocaleString()}
                             {customer.synced && (

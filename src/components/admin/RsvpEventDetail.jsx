@@ -33,6 +33,7 @@ import {
   PictureAsPdf as PdfIcon,
   Refresh as RefreshIcon,
   Search as SearchIcon,
+  TableChart as SheetIcon,
 } from '@mui/icons-material';
 import API from '../../BackendAPi/ApiProvider';
 import RsvpEventFormDialog from './rsvp/RsvpEventFormDialog';
@@ -76,11 +77,18 @@ const RsvpEventDetail = () => {
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [toggling, setToggling] = useState(false);
+  const [sheetUrl, setSheetUrl] = useState(null);
 
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  useEffect(() => {
+    API.get('/api/rsvp/admin/sheets')
+      .then((response) => setSheetUrl(response.data.enabled ? response.data.url : null))
+      .catch(() => {});
+  }, []);
 
   const fetchData = async () => {
     try {
@@ -274,6 +282,17 @@ If another event is live, it will be turned off.`
               <Button variant="outlined" startIcon={<RefreshIcon />} onClick={fetchData}>
                 Refresh
               </Button>
+              {sheetUrl && (
+                <Button
+                  variant="outlined"
+                  startIcon={<SheetIcon />}
+                  href={event.sheetTabId != null ? `${sheetUrl}#gid=${event.sheetTabId}` : sheetUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Open in Google Sheets
+                </Button>
+              )}
             </Box>
           </Grid>
         </Grid>
