@@ -21,6 +21,7 @@ import CustomEmail from './components/admin/CustomEmail';
 import Login from './components/admin/Login';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 import PublicCreateContact from './components/public/PublicCreateContact';
+import VolunteerCheckIn from './components/public/checkin/VolunteerCheckIn';
 
 const App = () => {
   useEffect(() => {
@@ -45,6 +46,12 @@ const App = () => {
             <Routes>
             {/* Public Routes */}
             <Route path="/contact-intake" element={<PublicCreateContact />} />
+            {/* Door check-in for volunteers: PIN instead of admin login. The old admin path is kept
+                because QR codes in emails already sent point to it. */}
+            <Route path="/check-in" element={<VolunteerCheckIn />} />
+            <Route path="/check-in/:code" element={<VolunteerCheckIn />} />
+            <Route path="/event-rsvps/check-in" element={<VolunteerCheckIn />} />
+            <Route path="/event-rsvps/check-in/:code" element={<VolunteerCheckIn />} />
             
             {/* Admin Routes */}
             <Route path="/admin/login" element={<Login />} />

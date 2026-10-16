@@ -25,9 +25,13 @@ import {
 import {
   ArrowBack as BackIcon,
   CalendarMonth as CalendarIcon,
+  CheckCircle as CheckedInIcon,
   Delete as DeleteIcon,
   Download as DownloadIcon,
   Edit as EditIcon,
+  Email as ResendIcon,
+  HowToReg as CheckInIcon,
+  RadioButtonUnchecked as NotCheckedInIcon,
   EventBusy as EndIcon,
   LocationOn as LocationIcon,
   PictureAsPdf as PdfIcon,
@@ -47,7 +51,7 @@ import {
 } from './rsvp/rsvpEventUtils';
 
 const StatCard = ({ label, value, hint }) => (
-  <Grid item xs={12} sm={6}>
+  <Grid item xs={12} sm={4}>
     <Paper sx={{ p: 3, height: '100%' }}>
       <Typography variant="body2" color="text.secondary">
         {label}
@@ -112,11 +116,36 @@ const RsvpEventDetail = () => {
     const term = search.trim().toLowerCase();
     if (!term) return rsvps;
     return rsvps.filter((r) =>
-      [`${r.firstName} ${r.lastName}`, r.email, r.cellNumber].some((v) => String(v || '').toLowerCase().includes(term))
+      [`${r.firstName} ${r.lastName}`, r.email, r.cellNumber, r.checkInCode].some((v) => String(v || '').toLowerCase().includes(term))
     );
   }, [rsvps, search]);
 
   const expectedAttendees = rsvps.reduce((sum, r) => sum + (r.guests || 0), 0);
+  const checkedInRsvps = rsvps.filter((r) => r.checkedInAt);
+  const checkedInPeople = checkedInRsvps.reduce((sum, r) => sum + (r.guests || 0), 0);
+
+  const toggleCheckIn = async (rsvp) => {
+    const checkedIn = !rsvp.checkedInAt;
+    if (!checkedIn && !window.confirm(`Undo check-in for ${rsvp.firstName} ${rsvp.lastName}?`)) return;
+    try {
+      const response = await API.patch(`/api/rsvp/admin/rsvps/${rsvp._id}/check-in`, { checkedIn });
+      setRsvps((prev) => prev.map((r) => (r._id === rsvp._id ? { ...r, checkedInAt: response.data.checkedInAt } : r)));
+      setNotice(checkedIn ? `${rsvp.firstName} ${rsvp.lastName} checked in` : 'Check-in undone');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Failed to update check-in'));
+    }
+  };
+
+  const resendConfirmation = async (rsvp) => {
+    if (!window.confirm(`Re-send the confirmation email (with check-in QR) to ${rsvp.email}?`)) return;
+    try {
+      const response = await API.post(`/api/rsvp/admin/rsvps/${rsvp._id}/resend-confirmation`);
+      setRsvps((prev) => prev.map((r) => (r._id === rsvp._id ? { ...r, checkInCode: response.data.checkInCode } : r)));
+      setNotice(`Confirmation sent to ${rsvp.email}`);
+    } catch (err) {
+      setError(getErrorMessage(err, 'Failed to send the confirmation email'));
+    }
+  };
 
   const toggleActive = async () => {
     const turningOn = !event.isActive;
@@ -153,7 +182,7 @@ If another event is live, it will be turned off.`
 
   const exportCsv = () => {
     const rows = [
-      ['First Name', 'Last Name', 'Email', 'Phone', 'People', 'Promotional Updates', 'Submitted'],
+      ['First Name', 'Last Name', 'Email', 'Phone', 'People', 'Promotional Updates', 'Submitted', 'Check-in Code', 'Checked In'],
       ...rsvps.map((r) => [
         r.firstName,
         r.lastName,
@@ -162,6 +191,8 @@ If another event is live, it will be turned off.`
         r.guests,
         r.promotionalUpdates ? 'Yes' : 'No',
         formatDateTime(r.submittedAt),
+        r.checkInCode || '',
+        r.checkedInAt ? formatDateTime(r.checkedInAt) : '',
       ]),
     ];
     const csv = rows.map((row) => row.map(csvEscape).join(',')).join('\n');
@@ -279,6 +310,9 @@ If another event is live, it will be turned off.`
               <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setDialogOpen(true)}>
                 Edit event
               </Button>
+              <Button variant="contained" startIcon={<CheckInIcon />} onClick={() => window.open('/check-in', '_blank', 'noopener')}>
+                Check-in desk
+              </Button>
               <Button variant="outlined" startIcon={<RefreshIcon />} onClick={fetchData}>
                 Refresh
               </Button>
@@ -301,6 +335,11 @@ If another event is live, it will be turned off.`
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <StatCard label="Expected Attendees" value={expectedAttendees} hint="Total people across all RSVPs" />
         <StatCard label="RSVPs" value={rsvps.length} hint="Forms submitted (one per email)" />
+        <StatCard
+          label="Checked In"
+          value={`${checkedInPeople} / ${expectedAttendees}`}
+          hint={`People arrived (${checkedInRsvps.length} of ${rsvps.length} RSVPs)`}
+        />
       </Grid>
 
       <Paper sx={{ p: 2 }}>
@@ -309,7 +348,7 @@ If another event is live, it will be turned off.`
           <Box display="flex" gap={1} alignItems="center">
             <TextField
               size="small"
-              placeholder="Search name, email, phone"
+              placeholder="Search name, email, phone, code"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               InputProps={{
@@ -344,6 +383,7 @@ If another event is live, it will be turned off.`
                   <TableCell>Phone</TableCell>
                   <TableCell align="center">People</TableCell>
                   <TableCell>Submitted</TableCell>
+                  <TableCell align="center">Checked In</TableCell>
                   <TableCell align="right">Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -355,7 +395,19 @@ If another event is live, it will be turned off.`
                     <TableCell>{rsvp.cellNumber}</TableCell>
                     <TableCell align="center">{rsvp.guests}</TableCell>
                     <TableCell>{formatDateTime(rsvp.submittedAt)}</TableCell>
+                    <TableCell align="center">
+                      <Tooltip title={rsvp.checkedInAt ? `Checked in ${formatDateTime(rsvp.checkedInAt)} — click to undo` : 'Mark as arrived'}>
+                        <IconButton size="small" color={rsvp.checkedInAt ? 'success' : 'default'} onClick={() => toggleCheckIn(rsvp)}>
+                          {rsvp.checkedInAt ? <CheckedInIcon fontSize="small" /> : <NotCheckedInIcon fontSize="small" />}
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
                     <TableCell align="right">
+                      <Tooltip title="Re-send confirmation email">
+                        <IconButton size="small" onClick={() => resendConfirmation(rsvp)}>
+                          <ResendIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                       <Tooltip title="Remove">
                         <IconButton size="small" onClick={() => deleteRsvp(rsvp)}>
                           <DeleteIcon fontSize="small" />
