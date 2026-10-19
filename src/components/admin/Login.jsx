@@ -19,12 +19,12 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    const isAuthenticated = login(password);
-    if (isAuthenticated) {
+    const result = await login(password);
+    if (result.success) {
       // Log successful login
       console.log('Login successful, redirecting to:', location.state?.from?.pathname || '/');
       
@@ -33,7 +33,7 @@ const Login = () => {
       navigate(from, { replace: true });
     } else {
       console.log('Login failed'); // Debug log
-      setError('Invalid password');
+      setError(result.message);
     }
   };
 

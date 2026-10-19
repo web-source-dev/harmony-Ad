@@ -46,7 +46,7 @@ const App = () => {
             <Routes>
             {/* Public Routes */}
             <Route path="/contact-intake" element={<PublicCreateContact />} />
-            {/* Door check-in for volunteers: PIN instead of admin login. The old admin path is kept
+            {/* Door check-in: needs the admin login (guests opening their own QR see their pass). The old admin path is kept
                 because QR codes in emails already sent point to it. */}
             <Route path="/check-in" element={<VolunteerCheckIn />} />
             <Route path="/check-in/:code" element={<VolunteerCheckIn />} />

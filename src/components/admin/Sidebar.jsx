@@ -22,6 +22,7 @@ import {
   Email as EmailIcon,
   Handshake as HandshakeIcon,
   EventAvailable as RsvpEventIcon,
+  QrCodeScanner as CheckInIcon,
   Logout as LogoutIcon,
 } from '@mui/icons-material';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -72,6 +73,11 @@ const menuItems = [
     text: 'RSVP Events',
     icon: RsvpEventIcon,
     path: '/event-rsvps'
+  },
+  {
+    text: 'Door Check-in',
+    icon: CheckInIcon,
+    path: '/check-in'
   },
   { 
     text: 'Custom Email', 
@@ -221,7 +227,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, isMobile }) => {
         <ListSubheader sx={{ bgcolor: 'transparent', fontWeight: 600 }}>
           Engagement
         </ListSubheader>
-        {menuItems.slice(6, 9).map((item) => (
+        {menuItems.slice(6, 10).map((item) => (
           <ListItem
             button
             key={item.text}

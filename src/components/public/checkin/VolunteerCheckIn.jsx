@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link as RouterLink, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import {
   Alert,
   Box,
@@ -16,26 +16,27 @@ import {
   MenuItem,
   Paper,
   TextField,
-  Tooltip,
   Typography,
 } from '@mui/material';
 import {
   CheckCircle as CheckedInIcon,
   Clear as ClearIcon,
+  Dashboard as DashboardIcon,
   HowToReg as CheckInIcon,
-  Lock as LockIcon,
   QrCodeScanner as ScanIcon,
   Search as SearchIcon,
   Undo as UndoIcon,
 } from '@mui/icons-material';
 import API from '../../../BackendAPi/ApiProvider';
 import QrScannerDialog from './QrScannerDialog';
+import GuestPass from './GuestPass';
+import { useAuth } from '../../../contexts/AuthContext';
 
-// Door check-in for volunteers on tablets, without admin access. Unlocked with the check-in PIN
-// (remembered on the tablet); find a guest by scanning their QR or typing their name, email, phone or
-// code, then check them in. Opening a guest's QR link with the camera app lands here too.
+// Door check-in at the event, for anyone logged in to the admin dashboard: find a guest by scanning
+// their QR or typing their name, email, phone or code, then check them in. Opening a guest's QR link
+// with the camera app lands here too: logged in, it goes straight to that guest; otherwise the guest
+// sees their own pass, with a link for staff to log in.
 
-const PIN_KEY = 'h4aCheckInPin';
 const EVENT_KEY = 'h4aCheckInEvent';
 const STATS_REFRESH_MS = 20000;
 
@@ -52,7 +53,7 @@ const storage = {
       if (value) localStorage.setItem(key, value);
       else localStorage.removeItem(key);
     } catch {
-      // Private browsing: the PIN just isn't remembered
+      // Private browsing: the event choice just isn't remembered
     }
   },
 };
@@ -63,63 +64,6 @@ const formatTime = (date) =>
 const partyLabel = (guests) => (guests === 1 ? '1 guest' : `${guests} guests`);
 
 const errorMessage = (err, fallback) => err?.response?.data?.message || fallback;
-
-// ─── PIN screen ──────────────────────────────────────────────────────────────
-
-const PinScreen = ({ onUnlock, message }) => {
-  const [pin, setPin] = useState('');
-  const [error, setError] = useState(message || null);
-  const [checking, setChecking] = useState(false);
-
-  const submit = async (e) => {
-    e.preventDefault();
-    if (!pin.trim()) return;
-    setChecking(true);
-    setError(null);
-    try {
-      await API.post('/api/check-in/verify', {}, { headers: { Authorization: `Bearer ${pin.trim()}` } });
-      onUnlock(pin.trim());
-    } catch (err) {
-      setError(errorMessage(err, 'Could not reach the server. Check the internet connection.'));
-      setPin('');
-    } finally {
-      setChecking(false);
-    }
-  };
-
-  return (
-    <Container maxWidth="xs" sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center' }}>
-      <Paper component="form" onSubmit={submit} sx={{ p: 4, width: '100%', textAlign: 'center' }}>
-        <Typography variant="h5" sx={{ fontWeight: 700 }}>
-          Harmony 4 All
-        </Typography>
-        <Typography color="text.secondary" sx={{ mb: 3 }}>
-          Volunteer check-in
-        </Typography>
-        <TextField
-          autoFocus
-          fullWidth
-          type="password"
-          label="Check-in PIN"
-          value={pin}
-          onChange={(e) => setPin(e.target.value)}
-          inputProps={{ inputMode: 'numeric', autoComplete: 'off', style: { fontSize: 24, letterSpacing: 6, textAlign: 'center' } }}
-        />
-        {error && (
-          <Alert severity="error" sx={{ mt: 2, textAlign: 'left' }}>
-            {error}
-          </Alert>
-        )}
-        <Button type="submit" fullWidth size="large" variant="contained" disabled={checking || !pin.trim()} sx={{ mt: 3, py: 1.5 }}>
-          {checking ? <CircularProgress size={24} color="inherit" /> : 'Start check-in'}
-        </Button>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          Ask the event coordinator for the PIN.
-        </Typography>
-      </Paper>
-    </Container>
-  );
-};
 
 // ─── Guest card ──────────────────────────────────────────────────────────────
 
@@ -196,10 +140,10 @@ const GuestCard = ({ guest, otherEventTitle, saving, onCheckIn, onUndo, onNext }
 const VolunteerCheckIn = () => {
   const { code: codeParam } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const searchRef = useRef(null);
+  const { isAuthenticated, logout } = useAuth();
 
-  const [pin, setPin] = useState(() => storage.get(PIN_KEY));
-  const [lockMessage, setLockMessage] = useState(null);
   const [events, setEvents] = useState(null);
   const [eventId, setEventId] = useState(() => storage.get(EVENT_KEY));
   const [stats, setStats] = useState(null);
@@ -214,31 +158,25 @@ const VolunteerCheckIn = () => {
   const [scannerOpen, setScannerOpen] = useState(false);
   const [loadError, setLoadError] = useState(null);
 
-  const lock = useCallback((message = null) => {
-    storage.set(PIN_KEY, '');
-    setPin('');
-    setLockMessage(message);
-    setEvents(null);
-  }, []);
-
-  // Every call carries the PIN; a 401 means it was changed on the server, so ask again
+  // Every call carries the admin login (ApiProvider adds it); a 401 means it expired or the password
+  // changed, so log out and the page sends the user to the login screen
   const call = useCallback(
     async (config) => {
       try {
-        return (await API.request({ ...config, headers: { Authorization: `Bearer ${pin}` } })).data;
+        return (await API.request(config)).data;
       } catch (err) {
-        if (err?.response?.status === 401) lock('The check-in PIN has changed. Please enter the new PIN.');
+        if (err?.response?.status === 401) logout();
         throw err;
       }
     },
-    [pin, lock]
+    [logout]
   );
 
   const focusSearch = () => setTimeout(() => searchRef.current?.focus(), 50);
 
   // Events to choose from; keeps the tablet's last choice, otherwise the soonest event
   useEffect(() => {
-    if (!pin) return;
+    if (!isAuthenticated) return;
     setLoadError(null);
     call({ method: 'get', url: '/api/check-in/events' })
       .then((list) => {
@@ -246,7 +184,7 @@ const VolunteerCheckIn = () => {
         setEventId((current) => (list.some((event) => event._id === current) ? current : list[0]?._id || ''));
       })
       .catch((err) => setLoadError(errorMessage(err, 'Could not load events. Check the internet connection and refresh.')));
-  }, [pin, call]);
+  }, [isAuthenticated, call]);
 
   useEffect(() => storage.set(EVENT_KEY, eventId), [eventId]);
 
@@ -259,12 +197,12 @@ const VolunteerCheckIn = () => {
 
   // Totals stay current while several tablets check people in
   useEffect(() => {
-    if (!pin || !eventId) return undefined;
+    if (!isAuthenticated || !eventId) return undefined;
     setStats(null);
     refreshStats();
     const timer = setInterval(refreshStats, STATS_REFRESH_MS);
     return () => clearInterval(timer);
-  }, [pin, eventId, refreshStats]);
+  }, [isAuthenticated, eventId, refreshStats]);
 
   // Suggestions as the volunteer types
   useEffect(() => {
@@ -317,8 +255,8 @@ const VolunteerCheckIn = () => {
 
   // A guest's QR opened with the camera app lands on /check-in/<code>
   useEffect(() => {
-    if (pin && events && codeParam) lookUpCode(codeParam);
-  }, [pin, events, codeParam, lookUpCode]);
+    if (isAuthenticated && events && codeParam) lookUpCode(codeParam);
+  }, [isAuthenticated, events, codeParam, lookUpCode]);
 
   const nextGuest = () => {
     setGuest(null);
@@ -376,17 +314,10 @@ const VolunteerCheckIn = () => {
     [lookUpCode]
   );
 
-  if (!pin) {
-    return (
-      <PinScreen
-        message={lockMessage}
-        onUnlock={(value) => {
-          storage.set(PIN_KEY, value);
-          setLockMessage(null);
-          setPin(value);
-        }}
-      />
-    );
+  // Not logged in: a guest who opened their own QR link sees their pass; anything else goes to login
+  if (!isAuthenticated) {
+    if (codeParam) return <GuestPass code={codeParam} onStaff={() => navigate('/admin/login', { state: { from: location } })} />;
+    return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
   const event = events?.find((item) => item._id === eventId);
@@ -394,12 +325,12 @@ const VolunteerCheckIn = () => {
 
   return (
     <Container maxWidth="md" sx={{ py: { xs: 2, sm: 4 } }}>
-      {/* Header: event, totals, lock */}
+      {/* Header: event, totals, back to the dashboard */}
       <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 2 }}>
         <Box display="flex" alignItems="flex-start" gap={2}>
           <Box flex={1} minWidth={0}>
             <Typography variant="overline" color="text.secondary">
-              Harmony 4 All · Volunteer check-in
+              Harmony 4 All · Door check-in
             </Typography>
             {events && events.length > 1 ? (
               <TextField
@@ -434,11 +365,9 @@ const VolunteerCheckIn = () => {
               </>
             )}
           </Box>
-          <Tooltip title="Lock this tablet">
-            <IconButton onClick={() => window.confirm('Lock check-in on this tablet? The PIN will be needed again.') && lock()}>
-              <LockIcon />
-            </IconButton>
-          </Tooltip>
+          <Button component={RouterLink} to="/" startIcon={<DashboardIcon />} color="inherit" sx={{ whiteSpace: 'nowrap' }}>
+            Dashboard
+          </Button>
         </Box>
 
         {stats && (

@@ -11,6 +11,13 @@ const API = axios.create({
 API.interceptors.request.use(
   (config) => {
     console.log(`Making ${config.method?.toUpperCase()} request to: ${config.url}`);
+    // The admin login token (see AuthContext), for routes the server keeps to logged-in admins
+    try {
+      const token = localStorage.getItem('adminAuthToken');
+      if (token && !config.headers?.Authorization) config.headers.Authorization = `Bearer ${token}`;
+    } catch {
+      // Storage blocked: the request goes without a login
+    }
     return config;
   },
   (error) => {
